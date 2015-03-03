@@ -13,13 +13,14 @@ import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PImage;
 
-//@SuppressWarnings("deprecation")
 public class Capture extends PImage implements PConstants {
 	
 	private static final boolean DEBUG = true;
 	public static void log(String log) {if (DEBUG) System.out.println(log);}
 	
 	private Context context;
+	
+	private Camera mCamera;
 	
 	private static ArrayList<String> camerasList = new ArrayList<String>();
 	
@@ -38,7 +39,16 @@ public class Capture extends PImage implements PConstants {
 		} else {
 			selectedCamera = camerasList.indexOf(camera);
 		}
-		log("Selected camera = " + selectedCamera);		
+		log("Selected camera = " + selectedCamera);
+		try {
+			mCamera = Camera.open(selectedCamera);
+			CameraPreview mPreview = new CameraPreview(context, mCamera);
+			mCamera.setPreviewCallback(previewCallback);
+		} catch (Exception e) {
+			System.err.println("Camera not avaialble to use.");
+			e.printStackTrace();
+		}
+		
 	}
 
 	public String[] list() {
