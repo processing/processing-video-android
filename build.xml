@@ -35,4 +35,56 @@
     </javac>
   </target>
 
+  <target name="dist" depends="build" description="Creates distribution package">
+    <mkdir dir="dist/tmp/video-android" />
+    
+   	<!-- copy library files (jar and gstreamer natives) -->
+  	<copy todir="dist/tmp/video-android/library">
+  		<fileset dir="library" />
+	</copy>
+    
+  	<!-- copy examples -->
+  	<copy todir="dist/tmp/video-android/examples">
+  		<fileset dir="examples" />
+	</copy>
+
+  	<!-- copy source -->
+    <copy todir="dist/tmp/video-android/src">
+  		<fileset dir="src" />
+	</copy>	
+  	
+    <!-- copy properties -->
+    <copy file="library.properties" tofile="dist/tmp/video-android/library.properties" />
+    
+    <!-- create the java reference of the library -->
+    <!--
+    <mkdir dir="dist/tmp/video-android/reference" />	
+	<javadoc bottom="Processing video library by The Processing Foundation. (c) 2011-14"
+			classpath="../processing/core/library/core.jar;bin" 
+			destdir="dist/tmp/video-android/reference"
+			verbose="false" 
+			stylesheetfile="resources/stylesheet.css" 
+			doctitle="Javadocs: Video library for Android"
+			public="true" version="false" 
+			windowtitle="Javadocs: Video library for Android">
+ 		<link href="http://java.sun.com/javase/6/docs/api/" />
+		<link href="http://github.com/omerjerk" />
+		<taglet name="ExampleTaglet" path="resources/code" />
+ 		<fileset dir="dist/tmp/video/src" defaultexcludes="yes"> 
+			<include name="**/*"/>
+		</fileset>
+	</javadoc>    -->
+        
+    <!-- create zip package -->
+    <delete file="dist/video-android.zip"/>
+	<zip destfile="dist/video-android.zip"
+  		basedir="dist/tmp"
+  		excludes="**/.DS_Store"
+	/>	
+	
+	<!-- copy properties to use by download manager -->
+    <copy file="library.properties" tofile="dist/video.txt" />
+	
+	<delete dir="dist/tmp" />
+  </target>
 </project>
