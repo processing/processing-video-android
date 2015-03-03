@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<project name="Video Library for Processing Android" default="build">
+
+  <property name="processing.dir" value="../../processing" />
+
+  <target name="clean" description="Clean the build directories">
+    <delete dir="bin" />
+    <delete file="library/video-android.jar" />
+  </target>
+
+  <target name="build" depends="sdk_chatter,compile" description="Build video library for Processing Android" >
+  	<jar basedir="bin" destfile="library/video-android.jar" />
+  </target>
+
+  <target name="sdk_chatter" unless="env.ANDROID_SDK">
+    <echo message="ANDROID_SDK not set, skipping build." />
+  </target>
+
+  <target name="compile" description="Compile sources">
+    <condition property="core-built">
+      <available file="../processing/core/library/core.jar" />
+    </condition>
+    <fail unless="core-built" message="Please build the core library first and make sure it sits in ../processing/core/library/core.jar" />
+
+    <mkdir dir="bin" />
+    <javac source="1.6"
+	   target="1.6" 
+	   srcdir="src" destdir="bin" 
+	   encoding="UTF-8"
+	   includeAntRuntime="false"
+	   classpath="../processing/core/library/core.jar;${env.ANDROID_SDK}/platforms/android-21/android.jar"
+	   nowarn="true"
+	   compiler="org.eclipse.jdt.core.JDTCompilerAdapter">
+      <compilerclasspath path="../processing/java/mode/org.eclipse.jdt.core.jar;../processing/java/mode/jdtCompilerAdapter.jar" />
+    </javac>
+  </target>
+
+</project>
