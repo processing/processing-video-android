@@ -14,10 +14,14 @@ public class Capture extends PImage implements PConstants {
 	
 	private static Context context;
 	
-	private static ArrayList<String> camerasList;
+	private static ArrayList<String> camerasList = new ArrayList<>();
 	
 	private static final String KEY_FRONT_CAMERA = "front-camera-%d";
 	private static final String KEY_BACK_CAMERA = "back-camera-%d";
+	
+	public Capture (PApplet context) {
+		Capture.context = context;
+	}
 	
 	public static String[] list() {
 		ensureContext();
@@ -42,10 +46,7 @@ public class Capture extends PImage implements PConstants {
 	
 	private static void ensureContext() {
 		if (context == null) {
-			context = PApplet.getInstance();
-			if (context == null) {
-				throw new NullPointerException("null context");
-			}
+			throw new RuntimeException("Create the instance of Capture class first.");
 		}
 	}
 }
