@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -13,6 +12,7 @@ import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PImage;
 
+@SuppressWarnings("deprecation")
 public class Capture extends PImage implements PConstants {
 	
 	private static final boolean DEBUG = true;
