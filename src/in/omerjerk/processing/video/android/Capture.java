@@ -5,9 +5,11 @@ import java.util.ArrayList;
 
 import android.content.Context;
 import android.hardware.Camera;
+import android.view.Gravity;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.WindowManager;
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PImage;
@@ -18,7 +20,7 @@ public class Capture extends PImage implements PConstants {
 	private static final boolean DEBUG = true;
 	public static void log(String log) {if (DEBUG) System.out.println(log);}
 	
-	private Context context;
+	private PApplet context;
 	
 	private Camera mCamera;
 	
@@ -40,15 +42,36 @@ public class Capture extends PImage implements PConstants {
 			selectedCamera = camerasList.indexOf(camera);
 		}
 		log("Selected camera = " + selectedCamera);
-		try {
+		createPreviewWindow();
+	}
+	
+	private void createPreviewWindow() {
+		final WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE |
+                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
+                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH);
+
+        params.gravity = Gravity.TOP | Gravity.LEFT;
+        params.height = 1;
+        params.width = 1;
+        
+        try {
 			mCamera = Camera.open(selectedCamera);
-			CameraPreview mPreview = new CameraPreview(context, mCamera);
-			mCamera.setPreviewCallback(previewCallback);
+			final WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);			
+			context.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					CameraPreview mPreview = new CameraPreview(context, mCamera);
+					windowManager.addView(mPreview, params);
+					mCamera.setPreviewCallback(previewCallback);
+				}
+			});
 		} catch (Exception e) {
 			System.err.println("Camera not avaialble to use.");
 			e.printStackTrace();
 		}
-		
 	}
 
 	public String[] list() {
@@ -74,7 +97,7 @@ public class Capture extends PImage implements PConstants {
 	private Camera.PreviewCallback previewCallback = new Camera.PreviewCallback() {
 		
 		@Override
-		public void onPreviewFrame(byte[] arg0, Camera arg1) {
+		public void onPreviewFrame(byte[] frame, Camera camera) {
 			log("Received Camera frame");
 		}
 	};
