@@ -36,6 +36,8 @@ public class Utils {
 	        if (i!=0 && (i+2)%width==0)
 	            i+=width;
 	    }
+	    
+	   
 
 	    return pixels;
 	}
@@ -51,4 +53,41 @@ public class Utils {
 	    b = b>255? 255 : b<0 ? 0 : b;
 	    return 0xff000000 | (b<<16) | (g<<8) | r;
 	}
+	
+	public static byte[] rotateYUV420Degree90(byte[] data, int imageWidth, int imageHeight) {
+	    byte [] yuv = new byte[imageWidth*imageHeight*3/2];
+	    // Rotate the Y luma
+	    int i = 0;
+	    for(int x = 0;x < imageWidth;x++)
+	    {
+	        for(int y = imageHeight-1;y >= 0;y--)                               
+	        {
+	            yuv[i] = data[y*imageWidth+x];
+	            i++;
+	        }
+	    }
+	    // Rotate the U and V color components 
+	    i = imageWidth*imageHeight*3/2-1;
+	    for(int x = imageWidth-1;x > 0;x=x-2)
+	    {
+	        for(int y = 0;y < imageHeight/2;y++)                                
+	        {
+	            yuv[i] = data[(imageWidth*imageHeight)+(y*imageWidth)+x];
+	            i--;
+	            yuv[i] = data[(imageWidth*imageHeight)+(y*imageWidth)+(x-1)];
+	            i--;
+	        }
+	    }
+	    return yuv;
+	}
+	
+	public static int[] rotateRGBDegree90(int[] data, int width, int height) {
+		int[] rotatedData = new int[data.length];
+		for (int y = 0; y < height; y++) {
+		    for (int x = 0; x < width; x++)
+		        rotatedData[x * height + height - y - 1] = data[x + y * width];
+		}
+		return rotatedData;
+	}
+
 }

@@ -2,6 +2,9 @@ package in.omerjerk.processing.video.android;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+
+import javax.print.attribute.Size2DSyntax;
 
 import android.content.Context;
 import android.hardware.Camera;
@@ -24,6 +27,7 @@ public class Capture extends PImage implements PConstants {
 	private PApplet context;
 	
 	private Camera mCamera;
+	private Camera.Parameters parameters;
 	private Size previewSize;
 	
 	private static ArrayList<String> camerasList = new ArrayList<String>();
@@ -58,11 +62,17 @@ public class Capture extends PImage implements PConstants {
         params.gravity = Gravity.TOP | Gravity.LEFT;
         params.height = 1;
         params.width = 1;
-        
+
         try {
 			mCamera = Camera.open(selectedCamera);
-			previewSize = mCamera.getParameters().getPreviewSize();
-			init(previewSize.width, previewSize.height, ARGB);
+			parameters = mCamera.getParameters();
+			setMinimumPreviewSize();
+			mCamera.setParameters(parameters);
+			previewSize = parameters.getPreviewSize();
+			init(previewSize.height, previewSize.width, ARGB);
+			
+			log("Width = " + previewSize.width);
+			log("height = " + previewSize.height);
 			final WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 			context.runOnUiThread(new Runnable() {
 				@Override
@@ -102,8 +112,9 @@ public class Capture extends PImage implements PConstants {
 		
 		@Override
 		public void onPreviewFrame(byte[] frame, Camera camera) {
-			log("preview frame received");
 			pixels  = Utils.convertYUV420_NV21toRGB8888(frame, previewSize.width, previewSize.height);
+			pixels = Utils.rotateRGBDegree90(pixels, previewSize.width, previewSize.height);
+			updatePixels();
 		}
 	};
 	
@@ -167,5 +178,25 @@ public class Capture extends PImage implements PConstants {
 	    public void surfaceDestroyed(SurfaceHolder holder) {
 	        // do nothing
 	    }
+	}
+	
+	private void setMinimumPreviewSize() {
+		List<Camera.Size> sizes = mCamera.getParameters().getSupportedPreviewSizes();
+		/*
+		Camera.Size minSize = null;
+		for (Camera.Size size : sizes) {
+			log("Size = " + size.width + " height = " + size.height);
+			if (minSize == null) {
+				minSize = size;
+				continue;
+			}
+			if (minSize.width > size.width) {
+				minSize = size;
+			}
+		}*/
+		Camera.Size minSize = sizes.get(sizes.size() - 8);
+		log("minimum width = " + minSize.width + " height = " + minSize.height);
+//		parameters.setPictureSize(minSize.height, minSize.width);
+		parameters.setPreviewSize(minSize.width, minSize.height);
 	}
 }
