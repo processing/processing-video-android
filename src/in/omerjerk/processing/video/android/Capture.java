@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import android.content.Context;
 import android.hardware.Camera;
+import android.hardware.Camera.Size;
 import android.view.Gravity;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -23,6 +24,7 @@ public class Capture extends PImage implements PConstants {
 	private PApplet context;
 	
 	private Camera mCamera;
+	private Size previewSize;
 	
 	private static ArrayList<String> camerasList = new ArrayList<String>();
 	
@@ -59,7 +61,9 @@ public class Capture extends PImage implements PConstants {
         
         try {
 			mCamera = Camera.open(selectedCamera);
-			final WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);			
+			previewSize = mCamera.getParameters().getPreviewSize();
+			init(previewSize.width, previewSize.height, ARGB);
+			final WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 			context.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
@@ -98,7 +102,8 @@ public class Capture extends PImage implements PConstants {
 		
 		@Override
 		public void onPreviewFrame(byte[] frame, Camera camera) {
-			log("Received Camera frame");
+			log("preview frame received");
+			pixels  = Utils.convertYUV420_NV21toRGB8888(frame, previewSize.width, previewSize.height);
 		}
 	};
 	
