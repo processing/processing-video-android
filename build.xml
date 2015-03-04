@@ -5,11 +5,11 @@
 
   <target name="clean" description="Clean the build directories">
     <delete dir="bin" />
-    <delete file="library/video-android.jar" />
+    <delete file="library/video_android.jar" />
   </target>
 
   <target name="build" depends="sdk_chatter,compile" description="Build video library for Processing Android" >
-  	<jar basedir="bin" destfile="library/video-android.jar" />
+  	<jar basedir="bin" destfile="library/video_android.jar" />
   </target>
 
   <target name="sdk_chatter" unless="env.ANDROID_SDK">
@@ -36,32 +36,32 @@
   </target>
 
   <target name="dist" depends="build" description="Creates distribution package">
-    <mkdir dir="dist/tmp/video-android" />
+    <mkdir dir="dist/tmp/video_android" />
     
    	<!-- copy library files (jar and gstreamer natives) -->
-  	<copy todir="dist/tmp/video-android/library">
+  	<copy todir="dist/tmp/video_android/library">
   		<fileset dir="library" />
 	</copy>
     
   	<!-- copy examples -->
-  	<copy todir="dist/tmp/video-android/examples">
+  	<copy todir="dist/tmp/video_android/examples">
   		<fileset dir="examples" />
 	</copy>
 
   	<!-- copy source -->
-    <copy todir="dist/tmp/video-android/src">
+    <copy todir="dist/tmp/video_android/src">
   		<fileset dir="src" />
 	</copy>	
   	
     <!-- copy properties -->
-    <copy file="library.properties" tofile="dist/tmp/video-android/library.properties" />
+    <copy file="library.properties" tofile="dist/tmp/video_android/library.properties" />
     
     <!-- create the java reference of the library -->
     <!--
-    <mkdir dir="dist/tmp/video-android/reference" />	
+    <mkdir dir="dist/tmp/video_android/reference" />
 	<javadoc bottom="Processing video library by The Processing Foundation. (c) 2011-14"
 			classpath="../processing/core/library/core.jar;bin" 
-			destdir="dist/tmp/video-android/reference"
+			destdir="dist/tmp/video_android/reference"
 			verbose="false" 
 			stylesheetfile="resources/stylesheet.css" 
 			doctitle="Javadocs: Video library for Android"
@@ -76,11 +76,11 @@
 	</javadoc>    -->
         
     <!-- create zip package -->
-    <delete file="dist/video-android.zip"/>
-	<zip destfile="dist/video-android.zip"
+    <delete file="dist/video_android.zip"/>
+	<zip destfile="dist/video_android.zip"
   		basedir="dist/tmp"
   		excludes="**/.DS_Store"
-	/>	
+	/>
 	
 	<!-- copy properties to use by download manager -->
     <copy file="library.properties" tofile="dist/video.txt" />
