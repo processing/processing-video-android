@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.view.Gravity;
@@ -100,7 +101,7 @@ public class Capture extends PImage implements PConstants {
 	}
 
 	public String[] list() {
-		if (true) {
+		if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
 			int nOfCameras = Camera.getNumberOfCameras();
 			for (int i = 0; i < nOfCameras; ++i) {
 				Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
