@@ -27,7 +27,6 @@ public class Capture extends PImage implements PConstants,
 
 	private Camera mCamera;
 	private Camera.Parameters parameters;
-	private Size previewSize;
 
 	private int previewWidth, previewHeight;
 
@@ -42,10 +41,12 @@ public class Capture extends PImage implements PConstants,
 		this(context, -1, -1);
 	}
 
-	public Capture(PApplet applet, int width, int height) {
+	public Capture(final PApplet applet, int width, int height) {
 		this.applet = applet;
 		this.width = width;
 		this.height = height;
+		applet.registerMethod("pause", this);
+		applet.registerMethod("resume", this);
 	}
 
 	public void setCamera(String camera) {
@@ -58,12 +59,19 @@ public class Capture extends PImage implements PConstants,
 		try {
 			mCamera = Camera.open(selectedCamera);
 			mCamera.setDisplayOrientation(90);
-			if (applet.canDraw())
+			if (applet.canDraw()) {
 				startPreview(applet.getSurfaceHolder());
+			}
 		} catch (Exception e) {
 			log("Couldn't open the Camera");
 			e.printStackTrace();
 		}
+	}
+	
+	public void pause() {
+	}
+	
+	public void resume() {
 	}
 
 	@Override
@@ -104,7 +112,7 @@ public class Capture extends PImage implements PConstants,
 	}
 
 	private void startPreview(SurfaceHolder mHolder) {
-		// If your preview can change or rotate, take care of those events
+		// If the preview can change or rotate, take care of those events
 		// here.
 		// Make sure to stop the preview before resizing or reformatting it.
 
@@ -117,6 +125,7 @@ public class Capture extends PImage implements PConstants,
 		try {
 			mCamera.stopPreview();
 		} catch (Exception e) {
+			e.printStackTrace();
 			// ignore: tried to stop a non-existent preview
 		}
 
