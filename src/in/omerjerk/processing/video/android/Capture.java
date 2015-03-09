@@ -7,19 +7,21 @@ import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
+import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.SurfaceHolder;
-import processing.core.PApplet;
+import android.view.TextureView.SurfaceTextureListener;
 import processing.core.PConstants;
+import processing.core.PGraphics;
 import processing.core.PImage;
-
-import in.omerjerk.processing.video.android.CameraHandlerCallback;
+import processing.core.PApplet;
+import processing.opengl.Texture;
 
 @SuppressWarnings("deprecation")
 public class Capture extends PImage implements PConstants,
-		SurfaceHolder.Callback, CameraHandlerCallback {
+		SurfaceHolder.Callback, CameraHandlerCallback, SurfaceTexture.OnFrameAvailableListener {
 
 	private static final boolean DEBUG = true;
 
@@ -41,6 +43,9 @@ public class Capture extends PImage implements PConstants,
 	private static final String KEY_BACK_CAMERA = "back-camera-%d";
 
 	private int selectedCamera = -1;
+	
+	private SurfaceTexture mSurfaceTexture;
+	private Texture mTexture;
 
 	public Capture(PApplet context) {
 		this(context, -1, -1);
@@ -52,6 +57,13 @@ public class Capture extends PImage implements PConstants,
 		this.height = height;
 		applet.registerMethod("pause", this);
 		applet.registerMethod("resume", this);
+		
+		mTexture = (Texture) applet.g.getCache(this);
+		if (mTexture != null) {
+			System.out.println("glname = " + mTexture.glName);
+			mSurfaceTexture = new SurfaceTexture(mTexture.glName);
+			mSurfaceTexture.setOnFrameAvailableListener(this);
+		}
 	}
 
 	public void setCamera(String camera) {
@@ -68,9 +80,7 @@ public class Capture extends PImage implements PConstants,
 		try {
 			mCamera = Camera.open(cameraId);
 			mCamera.setDisplayOrientation(90);
-			if (applet.canDraw()) {
-				startPreview(applet.getSurfaceHolder());
-			}
+			startPreview(applet.getSurfaceHolder());
 		} catch (Exception e) {
 			log("Couldn't open the Camera");
 			e.printStackTrace();
@@ -142,7 +152,6 @@ public class Capture extends PImage implements PConstants,
 		try {
 			mCamera.stopPreview();
 		} catch (Exception e) {
-			e.printStackTrace();
 			// ignore: tried to stop a non-existent preview
 		}
 
@@ -151,9 +160,9 @@ public class Capture extends PImage implements PConstants,
 
 		// start preview with new settings
 		try {
-			mCamera.setPreviewDisplay(mHolder);
+			mCamera.setPreviewTexture(mSurfaceTexture);
 			mCamera.startPreview();
-
+			log("Started the preview");
 		} catch (Exception e) {
 			Log.d("PROCESSING",
 					"Error starting camera preview: " + e.getMessage());
@@ -207,6 +216,22 @@ public class Capture extends PImage implements PConstants,
 	@Override
 	public void handleSetSurfaceTexture(SurfaceTexture st) {
 		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void onFrameAvailable(final SurfaceTexture surfaceTexture) {
+		// TODO Auto-generated method stub
+		System.out.println("OnFrameAvailable");
+		((GLSurfaceView) applet.getSurfaceView()).queueEvent(new Runnable() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				surfaceTexture.updateTexImage();
+				
+			}
+		});
+		
 	}
 
 }
