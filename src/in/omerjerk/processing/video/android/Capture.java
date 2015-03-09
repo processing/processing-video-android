@@ -4,17 +4,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.pm.PackageManager;
+import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PImage;
 
+import in.omerjerk.processing.video.android.CameraHandlerCallback;
+
 @SuppressWarnings("deprecation")
 public class Capture extends PImage implements PConstants,
-		SurfaceHolder.Callback {
+		SurfaceHolder.Callback, CameraHandlerCallback {
 
 	private static final boolean DEBUG = true;
 
@@ -35,7 +40,7 @@ public class Capture extends PImage implements PConstants,
 	private static final String KEY_FRONT_CAMERA = "front-camera-%d";
 	private static final String KEY_BACK_CAMERA = "back-camera-%d";
 
-	private int selectedCamera = 0;
+	private int selectedCamera = -1;
 
 	public Capture(PApplet context) {
 		this(context, -1, -1);
@@ -56,8 +61,12 @@ public class Capture extends PImage implements PConstants,
 			selectedCamera = camerasList.indexOf(camera);
 		}
 		log("Selected camera = " + selectedCamera);
+		startCameraImpl(selectedCamera);
+	}
+	
+	public void startCameraImpl(int cameraId) {
 		try {
-			mCamera = Camera.open(selectedCamera);
+			mCamera = Camera.open(cameraId);
 			mCamera.setDisplayOrientation(90);
 			if (applet.canDraw()) {
 				startPreview(applet.getSurfaceHolder());
@@ -69,9 +78,17 @@ public class Capture extends PImage implements PConstants,
 	}
 	
 	public void pause() {
+		log("pause called");
+		if (mCamera != null) {
+			mCamera.release();
+        }
 	}
 	
 	public void resume() {
+		log("resume called");
+		if (selectedCamera != -1) {
+			startCameraImpl(selectedCamera);
+		}
 	}
 
 	@Override
@@ -142,13 +159,37 @@ public class Capture extends PImage implements PConstants,
 					"Error starting camera preview: " + e.getMessage());
 			e.printStackTrace();
 		}
-	}
+	}	
 
-	private void setPreviewSize() {
-		if (!(width == -1 || height == -1)) {
-			parameters.setPreviewSize(previewWidth, previewHeight);
-		}
-	}
+	static class CameraHandler extends Handler {
+        public static final int MSG_SET_SURFACE_TEXTURE = 0;
+
+        // Weak reference to the Activity; only access this from the UI thread.
+        private CameraHandlerCallback callback;
+
+        public CameraHandler(CameraHandlerCallback c) {
+        	callback = c;
+        }
+
+        @Override  // runs on UI thread
+        public void handleMessage(Message inputMessage) {
+            int what = inputMessage.what;
+            log("CameraHandler [" + this + "]: what=" + what);
+
+//            MainActivity activity = mWeakActivity.get();
+            if (callback == null) {
+                return;
+            }
+
+            switch (what) {
+                case MSG_SET_SURFACE_TEXTURE:
+                	callback.handleSetSurfaceTexture((SurfaceTexture) inputMessage.obj);
+                    break;
+                default:
+                    throw new RuntimeException("unknown msg " + what);
+            }
+        }
+    }
 
 	public Camera getCamera() {
 		return mCamera;
@@ -161,6 +202,11 @@ public class Capture extends PImage implements PConstants,
 		for (Size size : sizes) {
 			System.out.println(size.width + "x" + size.height);
 		}
+	}
+
+	@Override
+	public void handleSetSurfaceTexture(SurfaceTexture st) {
+		// TODO Auto-generated method stub
 	}
 
 }

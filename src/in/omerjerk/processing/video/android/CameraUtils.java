@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.grafika;
+package in.omerjerk.processing.video.android;
 
 import android.hardware.Camera;
 import android.util.Log;
@@ -24,8 +24,9 @@ import java.util.List;
 /**
  * Camera-related utility functions.
  */
+@SuppressWarnings("deprecation")
 public class CameraUtils {
-    private static final String TAG = MainActivity.TAG;
+    private static final String TAG = "OMERJERK";
 
     /**
      * Attempts to find a preview size that matches the provided width and height (which
