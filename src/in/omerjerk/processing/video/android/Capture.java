@@ -12,15 +12,12 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.SurfaceHolder;
-import android.view.TextureView.SurfaceTextureListener;
 import processing.core.PConstants;
-import processing.core.PGraphics;
-import processing.core.PImage;
 import processing.core.PApplet;
-import processing.opengl.Texture;
+import processing.opengl.PGraphicsOpenGL;
 
 @SuppressWarnings("deprecation")
-public class Capture extends PImage implements PConstants,
+public class Capture extends PGraphicsOpenGL implements PConstants,
 		SurfaceHolder.Callback, CameraHandlerCallback, SurfaceTexture.OnFrameAvailableListener {
 
 	private static final boolean DEBUG = true;
@@ -45,24 +42,32 @@ public class Capture extends PImage implements PConstants,
 	private int selectedCamera = -1;
 	
 	private SurfaceTexture mSurfaceTexture;
-	private Texture mTexture;
 
 	public Capture(PApplet context) {
 		this(context, -1, -1);
 	}
 
 	public Capture(final PApplet applet, int width, int height) {
+		super();
 		this.applet = applet;
-		this.width = width;
-		this.height = height;
+		if (width == -1 || height == -1) {
+			//TODO: Temp hack. Needs to be handled intelligently.
+			this.width = 1080;
+			this.height = 1920;
+		} else {
+			this.width = width;
+			this.height = height;
+		}
 		applet.registerMethod("pause", this);
 		applet.registerMethod("resume", this);
-		
-		mTexture = (Texture) applet.g.getCache(this);
-		if (mTexture != null) {
-			System.out.println("glname = " + mTexture.glName);
-			mSurfaceTexture = new SurfaceTexture(mTexture.glName);
+		setParent(applet);
+		setPrimary(false);
+		initOffscreen();
+		if (texture != null) {
+			mSurfaceTexture = new SurfaceTexture(texture.glName);
 			mSurfaceTexture.setOnFrameAvailableListener(this);
+		} else {
+			log("null texture");
 		}
 	}
 
