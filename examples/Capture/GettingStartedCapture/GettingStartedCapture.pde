@@ -19,3 +19,7 @@ void setup() {
 void draw() {
   image(cap, 0, 0);
 }
+
+public String sketchRenderer() {
+  return P2D;
+}
