@@ -1,5 +1,6 @@
 package in.omerjerk.processing.video.android;
 
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,6 +8,8 @@ import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
+import android.opengl.GLES11Ext;
+import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.os.Message;
@@ -16,6 +19,7 @@ import processing.core.PConstants;
 import processing.core.PApplet;
 import processing.core.PImage;
 import processing.opengl.PGraphicsOpenGL;
+import processing.opengl.Texture;
 
 @SuppressWarnings("deprecation")
 public class Capture extends PImage implements PConstants,
@@ -43,8 +47,12 @@ public class Capture extends PImage implements PConstants,
 	private SurfaceTexture mSurfaceTexture;
 	private FullFrameRect mFullScreen;
 	private int mTextureId;
+	private Texture appletTexture;
 
 	private CameraHandler mCameraHandler;
+	
+	IntBuffer frameBuffers = IntBuffer.allocate(1);
+	IntBuffer renderBuffers = IntBuffer.allocate(1);
 
 	public Capture(PApplet context) {
 		this(context, -1, -1);
@@ -63,6 +71,7 @@ public class Capture extends PImage implements PConstants,
 		applet.registerMethod("pause", this);
 		applet.registerMethod("resume", this);
 		glView = (GLSurfaceView) applet.getSurfaceView();
+		appletTexture = ((PGraphicsOpenGL)applet.g).getTexture();
 		applet.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -81,6 +90,7 @@ public class Capture extends PImage implements PConstants,
 				mSurfaceTexture.setOnFrameAvailableListener(Capture.this);
 				mCameraHandler.sendMessage(mCameraHandler.obtainMessage(CameraHandler.MSG_START_CAMERA, null));
 				System.out.println("sent starting message to UI thread");
+				prepareFrameBuffers();
 			}
 		});
 	}
@@ -256,5 +266,52 @@ public class Capture extends PImage implements PConstants,
 				//TODO: Copy this texture to applet's texture
 			}
 		});
+	}
+	
+	public void prepareFrameBuffers() {
+		
+		GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+		
+		//Generate frame buffer
+		GLES20.glGenFramebuffers(1, frameBuffers);
+		GlUtil.checkGlError("glGenFramebuffers");
+		//Bind frame buffer
+		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffers.get(0));
+		GlUtil.checkGlError("glBindFramebuffer");
+		
+		//Generate render buffers
+		GLES20.glGenRenderbuffers(1, renderBuffers);
+		GlUtil.checkGlError("glGenRenderbuffers");
+		//Bind render buffers
+		GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, renderBuffers.get(0));
+		GlUtil.checkGlError("glBindRenderbuffer");
+		//Allocate memory to render buffers
+		GLES20.glRenderbufferStorage(GLES20.GL_RENDERBUFFER, GLES20.GL_DEPTH_COMPONENT16, 1080, 1920);
+		GlUtil.checkGlError("glRenderbufferStorage");
+		
+		//Attach render buffer to frame buffer
+		GLES20.glFramebufferRenderbuffer(GLES20.GL_FRAMEBUFFER, GLES20.GL_DEPTH_ATTACHMENT,
+                GLES20.GL_RENDERBUFFER, renderBuffers.get(0));
+		GlUtil.checkGlError("glFramebufferRenderbuffer");
+
+		GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 1080, 1920, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
+		GlUtil.checkGlError("glTexImage2D");
+		
+		System.out.println("applet's texture name = " + appletTexture.glName);
+		GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,
+                GLES20.GL_TEXTURE_2D, appletTexture.glName, 0);
+		GlUtil.checkGlError("glFramebufferTexture2D");
+		
+		// See if GLES is happy with all this.
+        int status = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER);
+        if (status != GLES20.GL_FRAMEBUFFER_COMPLETE) {
+            throw new RuntimeException("Framebuffer not complete, status=" + status);
+        }
+        
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
+        GlUtil.checkGlError("glActiveTexture GLES20.GL_TEXTURE1");
+        
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTextureId);
+        GlUtil.checkGlError("glBindTexture GLES11Ext.GL_TEXTURE_EXTERNAL_OES");
 	}
 }
