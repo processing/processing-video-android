@@ -14,10 +14,11 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import processing.core.PConstants;
 import processing.core.PApplet;
+import processing.core.PImage;
 import processing.opengl.PGraphicsOpenGL;
 
 @SuppressWarnings("deprecation")
-public class Capture extends PGraphicsOpenGL implements PConstants,
+public class Capture extends PImage implements PConstants,
 		SurfaceHolder.Callback, CameraHandlerCallback, SurfaceTexture.OnFrameAvailableListener {
 
 	private static final boolean DEBUG = true;
@@ -30,9 +31,6 @@ public class Capture extends PGraphicsOpenGL implements PConstants,
 	private PApplet applet;
 
 	private Camera mCamera;
-	private Camera.Parameters parameters;
-
-	private int previewWidth, previewHeight;
 
 	private static ArrayList<String> camerasList = new ArrayList<String>();
 
@@ -40,15 +38,19 @@ public class Capture extends PGraphicsOpenGL implements PConstants,
 	private static final String KEY_BACK_CAMERA = "back-camera-%d";
 
 	private int selectedCamera = -1;
-	
+
+	private GLSurfaceView glView;
 	private SurfaceTexture mSurfaceTexture;
+	private FullFrameRect mFullScreen;
+	private int mTextureId;
+
+	private CameraHandler mCameraHandler;
 
 	public Capture(PApplet context) {
 		this(context, -1, -1);
 	}
 
 	public Capture(final PApplet applet, int width, int height) {
-		super();
 		this.applet = applet;
 		if (width == -1 || height == -1) {
 			//TODO: Temp hack. Needs to be handled intelligently.
@@ -60,15 +62,27 @@ public class Capture extends PGraphicsOpenGL implements PConstants,
 		}
 		applet.registerMethod("pause", this);
 		applet.registerMethod("resume", this);
-		setParent(applet);
-		setPrimary(false);
-		initOffscreen();
-		if (texture != null) {
-			mSurfaceTexture = new SurfaceTexture(texture.glName);
-			mSurfaceTexture.setOnFrameAvailableListener(this);
-		} else {
-			log("null texture");
-		}
+		glView = (GLSurfaceView) applet.getSurfaceView();
+		applet.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				mCameraHandler = new CameraHandler(Capture.this);
+			}
+		});
+
+		glView.queueEvent(new Runnable() {
+			@Override
+			public void run() {
+				mFullScreen = new FullFrameRect(
+		                new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT));
+				mTextureId = mFullScreen.createTextureObject();
+
+				mSurfaceTexture = new SurfaceTexture(mTextureId);
+				mSurfaceTexture.setOnFrameAvailableListener(Capture.this);
+				mCameraHandler.sendMessage(mCameraHandler.obtainMessage(CameraHandler.MSG_START_CAMERA, null));
+				System.out.println("sent starting message to UI thread");
+			}
+		});
 	}
 
 	public void setCamera(String camera) {
@@ -96,6 +110,10 @@ public class Capture extends PGraphicsOpenGL implements PConstants,
 		log("pause called");
 		if (mCamera != null) {
 			mCamera.release();
+        }
+		if (mFullScreen != null) {
+            mFullScreen.release(false);     // assume the GLSurfaceView EGL context is about
+            mFullScreen = null;             //  to be destroyed
         }
 	}
 	
@@ -144,9 +162,6 @@ public class Capture extends PGraphicsOpenGL implements PConstants,
 	}
 
 	private void startPreview(SurfaceHolder mHolder) {
-		// If the preview can change or rotate, take care of those events
-		// here.
-		// Make sure to stop the preview before resizing or reformatting it.
 
 		if (mHolder.getSurface() == null) {
 			// preview surface does not exist
@@ -177,6 +192,7 @@ public class Capture extends PGraphicsOpenGL implements PConstants,
 
 	static class CameraHandler extends Handler {
         public static final int MSG_SET_SURFACE_TEXTURE = 0;
+        public static final int MSG_START_CAMERA = 1;
 
         // Weak reference to the Activity; only access this from the UI thread.
         private CameraHandlerCallback callback;
@@ -199,6 +215,9 @@ public class Capture extends PGraphicsOpenGL implements PConstants,
                 case MSG_SET_SURFACE_TEXTURE:
                 	callback.handleSetSurfaceTexture((SurfaceTexture) inputMessage.obj);
                     break;
+                case MSG_START_CAMERA:
+                	callback.startCamera();
+                	break;
                 default:
                     throw new RuntimeException("unknown msg " + what);
             }
@@ -219,24 +238,23 @@ public class Capture extends PGraphicsOpenGL implements PConstants,
 	}
 
 	@Override
-	public void handleSetSurfaceTexture(SurfaceTexture st) {
-		// TODO Auto-generated method stub
-	}
+	public void handleSetSurfaceTexture(SurfaceTexture st) {}
+	
+	@Override
+	public void startCamera() {
+		System.out.println("Start Camera Impl");
+		startCameraImpl(0);
+	};
 
 	@Override
 	public void onFrameAvailable(final SurfaceTexture surfaceTexture) {
-		// TODO Auto-generated method stub
-		System.out.println("OnFrameAvailable");
-		((GLSurfaceView) applet.getSurfaceView()).queueEvent(new Runnable() {
-			
+		glView.queueEvent(new Runnable() {
 			@Override
 			public void run() {
-				// TODO Auto-generated method stub
+				System.out.println("onFrameAvailable");
 				surfaceTexture.updateTexImage();
-				
+				//TODO: Copy this texture to applet's texture
 			}
 		});
-		
 	}
-
 }
