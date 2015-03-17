@@ -10,6 +10,7 @@ import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
+import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.os.Message;
@@ -294,6 +295,7 @@ public class Capture extends PImage implements PConstants,
                 GLES20.GL_RENDERBUFFER, renderBuffers.get(0));
 		GlUtil.checkGlError("glFramebufferRenderbuffer");
 
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, appletTexture.glName);
 		GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 1080, 1920, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
 		GlUtil.checkGlError("glTexImage2D");
 		
@@ -302,16 +304,17 @@ public class Capture extends PImage implements PConstants,
                 GLES20.GL_TEXTURE_2D, appletTexture.glName, 0);
 		GlUtil.checkGlError("glFramebufferTexture2D");
 		
+		/*
+		//No sure if this is required in opengl 2. Ignoring as of now.
+		IntBuffer drawBuffers = IntBuffer.allocate(1);
+		drawBuffers.put(0, GLES20.GL_COLOR_ATTACHMENT0);
+		GLES30.glDrawBuffers(1, drawBuffers);
+		*/
+		
 		// See if GLES is happy with all this.
         int status = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER);
         if (status != GLES20.GL_FRAMEBUFFER_COMPLETE) {
             throw new RuntimeException("Framebuffer not complete, status=" + status);
         }
-        
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
-        GlUtil.checkGlError("glActiveTexture GLES20.GL_TEXTURE1");
-        
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTextureId);
-        GlUtil.checkGlError("glBindTexture GLES11Ext.GL_TEXTURE_EXTERNAL_OES");
 	}
 }
