@@ -13,11 +13,11 @@ void setup() {
   
   cap = new Capture(this);
   String[] list = cap.list();
-  cap.setCamera(list[0]);
+  //cap.setCamera(list[0]);
 }
 
 void draw() {
-  image(cap, 0, 0);
+  //image(cap, 0, 0);
 }
 
 public String sketchRenderer() {
