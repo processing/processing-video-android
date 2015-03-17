@@ -48,6 +48,8 @@ public class Capture extends PImage implements PConstants,
 	private SurfaceTexture mSurfaceTexture;
 	private FullFrameRect mFullScreen;
 	private int mTextureId;
+	private final float[] mSTMatrix = new float[16];
+	
 	private Texture appletTexture;
 
 	private CameraHandler mCameraHandler;
@@ -264,6 +266,9 @@ public class Capture extends PImage implements PConstants,
 			public void run() {
 				System.out.println("onFrameAvailable");
 				surfaceTexture.updateTexImage();
+				GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffers.get(0));
+				surfaceTexture.getTransformMatrix(mSTMatrix);
+				mFullScreen.drawFrame(mTextureId, mSTMatrix);
 				//TODO: Copy this texture to applet's texture
 			}
 		});
