@@ -50,7 +50,9 @@ public class Capture extends PImage implements PConstants,
 	private int mTextureId;
 	private final float[] mSTMatrix = new float[16];
 	
-	private Texture appletTexture;
+	private Texture customTexture;
+	private PGraphicsOpenGL pg;
+	private IntBuffer pixelBuffer;
 
 	private CameraHandler mCameraHandler;
 	
@@ -62,19 +64,24 @@ public class Capture extends PImage implements PConstants,
 	}
 
 	public Capture(final PApplet applet, int width, int height) {
+		super();
 		this.applet = applet;
 		if (width == -1 || height == -1) {
 			//TODO: Temp hack. Needs to be handled intelligently.
-			this.width = 1080;
-			this.height = 1920;
-		} else {
-			this.width = width;
-			this.height = height;
+			width = 720;
+			height = 1280;
 		}
+		init(width, height, ARGB);
+		pixelBuffer = IntBuffer.allocate(width * height);
+		pixelBuffer.position(0);
+		
 		applet.registerMethod("pause", this);
 		applet.registerMethod("resume", this);
 		glView = (GLSurfaceView) applet.getSurfaceView();
-		appletTexture = ((PGraphicsOpenGL)applet.g).getTexture();
+		pg = (PGraphicsOpenGL)applet.g;
+		customTexture = new Texture(pg, width, height);
+		log("cusotm texture address = " + customTexture.glName);
+		pg.setCache(this, customTexture);
 		applet.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -91,7 +98,8 @@ public class Capture extends PImage implements PConstants,
 
 				mSurfaceTexture = new SurfaceTexture(mTextureId);
 				mSurfaceTexture.setOnFrameAvailableListener(Capture.this);
-				mCameraHandler.sendMessage(mCameraHandler.obtainMessage(CameraHandler.MSG_START_CAMERA, null));
+//				mCameraHandler.sendMessage(mCameraHandler.obtainMessage(CameraHandler.MSG_START_CAMERA, null));
+				startCameraImpl(0);
 				System.out.println("sent starting message to UI thread");
 				prepareFrameBuffers();
 			}
@@ -243,10 +251,19 @@ public class Capture extends PImage implements PConstants,
 
 	public static void printCompatibleResolutionsList(Capture capture) {
 		Camera camera = capture.getCamera();
+		boolean selfOpen = false;
+		if (camera == null) {
+			camera = Camera.open(0);
+			selfOpen = true;
+		}
+			
 		List<Camera.Size> sizes = camera.getParameters()
 				.getSupportedPreviewSizes();
 		for (Size size : sizes) {
 			System.out.println(size.width + "x" + size.height);
+		}
+		if (selfOpen) {
+			camera.release();
 		}
 	}
 
@@ -266,14 +283,21 @@ public class Capture extends PImage implements PConstants,
 			public void run() {
 				System.out.println("onFrameAvailable");
 				surfaceTexture.updateTexImage();
+				
 				GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffers.get(0));
+				GLES20.glViewport(0, 0, width, height);
 				surfaceTexture.getTransformMatrix(mSTMatrix);
 				mFullScreen.drawFrame(mTextureId, mSTMatrix);
-				//TODO: Copy this texture to applet's texture
+				
+				pixelBuffer.position(0);
+				GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixelBuffer);
+				pixelBuffer.position(0);
+				pixelBuffer.get(Capture.this.pixels);
+				updatePixels();
 			}
 		});
 	}
-	
+
 	public void prepareFrameBuffers() {
 		
 		GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
@@ -292,7 +316,7 @@ public class Capture extends PImage implements PConstants,
 		GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, renderBuffers.get(0));
 		GlUtil.checkGlError("glBindRenderbuffer");
 		//Allocate memory to render buffers
-		GLES20.glRenderbufferStorage(GLES20.GL_RENDERBUFFER, GLES20.GL_DEPTH_COMPONENT16, 1080, 1920);
+		GLES20.glRenderbufferStorage(GLES20.GL_RENDERBUFFER, GLES20.GL_DEPTH_COMPONENT16, width, height);
 		GlUtil.checkGlError("glRenderbufferStorage");
 		
 		//Attach render buffer to frame buffer
@@ -300,13 +324,16 @@ public class Capture extends PImage implements PConstants,
                 GLES20.GL_RENDERBUFFER, renderBuffers.get(0));
 		GlUtil.checkGlError("glFramebufferRenderbuffer");
 
-		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, appletTexture.glName);
-		GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 1080, 1920, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, customTexture.glName);
+		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+		GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+		GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+		GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
 		GlUtil.checkGlError("glTexImage2D");
-		
-		System.out.println("applet's texture name = " + appletTexture.glName);
+
 		GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,
-                GLES20.GL_TEXTURE_2D, appletTexture.glName, 0);
+                GLES20.GL_TEXTURE_2D, customTexture.glName, 0);
 		GlUtil.checkGlError("glFramebufferTexture2D");
 		
 		/*
