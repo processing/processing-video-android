@@ -294,6 +294,9 @@ public class Capture extends PImage implements PConstants,
 				pixelBuffer.position(0);
 				pixelBuffer.get(Capture.this.pixels);
 				updatePixels();
+				
+				//Fall back to default frame buffer
+				GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
 			}
 		});
 	}
