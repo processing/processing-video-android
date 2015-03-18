@@ -328,6 +328,7 @@ public class Capture extends PImage implements PConstants,
 		GlUtil.checkGlError("glFramebufferRenderbuffer");
 
 		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, customTexture.glName);
+		GlUtil.checkGlError("glBindTexture");
 		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
 		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
 		GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
