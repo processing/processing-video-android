@@ -89,22 +89,6 @@ public class Capture extends PImage implements PConstants,
 				mCameraHandler = new CameraHandler(Capture.this);
 			}
 		});
-
-		glView.queueEvent(new Runnable() {
-			@Override
-			public void run() {
-				mFullScreen = new FullFrameRect(
-		                new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT));
-				mTextureId = mFullScreen.createTextureObject();
-
-				mSurfaceTexture = new SurfaceTexture(mTextureId);
-				mSurfaceTexture.setOnFrameAvailableListener(Capture.this);
-//				mCameraHandler.sendMessage(mCameraHandler.obtainMessage(CameraHandler.MSG_START_CAMERA, null));
-				startCameraImpl(0);
-				System.out.println("sent starting message to UI thread");
-				prepareFrameBuffers();
-			}
-		});
 	}
 
 	public void setCamera(String camera) {
@@ -137,6 +121,10 @@ public class Capture extends PImage implements PConstants,
             mFullScreen.release(false);     // assume the GLSurfaceView EGL context is about
             mFullScreen = null;             //  to be destroyed
         }
+		if (mSurfaceTexture != null) {
+			mSurfaceTexture.release();
+			mSurfaceTexture = null;
+		}
 	}
 	
 	public void resume() {
@@ -144,6 +132,22 @@ public class Capture extends PImage implements PConstants,
 		if (selectedCamera != -1) {
 			startCameraImpl(selectedCamera);
 		}
+		
+		glView.queueEvent(new Runnable() {
+			@Override
+			public void run() {
+				mFullScreen = new FullFrameRect(
+		                new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT));
+				mTextureId = mFullScreen.createTextureObject();
+
+				mSurfaceTexture = new SurfaceTexture(mTextureId);
+				mSurfaceTexture.setOnFrameAvailableListener(Capture.this);
+//				mCameraHandler.sendMessage(mCameraHandler.obtainMessage(CameraHandler.MSG_START_CAMERA, null));
+				startCameraImpl(0);
+				System.out.println("sent starting message to UI thread");
+				prepareFrameBuffers();
+			}
+		});
 	}
 
 	@Override
