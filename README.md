@@ -1,6 +1,6 @@
 # Processing Video implementation for Android
 In this branch, I'm maintaing another approach to render camera preview on processing's `GLSurfaceView`.
-The idea is to render camera preview on a `SurfaceTexture` and as soon as the new frame is received, copy the data from this `SurfaceTexture` to processing's underlying texure. 
+The idea is to render camera preview on a `SurfaceTexture` and as soon as the new frame is received, copy the data from this `SurfaceTexture` to a custom texure bound to target `GL_TEXTURE_2D`. 
 We cannot directly render to processing's own texture because it's bound `GL_TEXTURE_2D` target, whereas for the preview to happen, the texture should be bound to `GL_TEXTURE_EXTERNAL_OES`.
 
 **Behind the hood :**
