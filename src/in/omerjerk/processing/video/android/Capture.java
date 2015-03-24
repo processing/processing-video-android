@@ -18,7 +18,9 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import processing.core.PConstants;
 import processing.core.PApplet;
+import processing.core.PGraphics;
 import processing.core.PImage;
+import processing.opengl.PGL;
 import processing.opengl.PGraphicsOpenGL;
 import processing.opengl.Texture;
 
@@ -53,6 +55,9 @@ public class Capture extends PImage implements PConstants,
 	private Texture customTexture;
 	private PGraphicsOpenGL pg;
 	private IntBuffer pixelBuffer;
+	
+	private PGraphicsOpenGL destpg;
+	PGL pgl;
 
 	private CameraHandler mCameraHandler;
 	
@@ -82,7 +87,7 @@ public class Capture extends PImage implements PConstants,
 		customTexture = new Texture(pg, width, height);
 		customTexture.invertedY(true);
 		log("cusotm texture address = " + customTexture.glName);
-		pg.setCache(this, customTexture);
+//		pg.setCache(this, customTexture);
 		applet.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -291,11 +296,36 @@ public class Capture extends PImage implements PConstants,
 				surfaceTexture.getTransformMatrix(mSTMatrix);
 				mFullScreen.drawFrame(mTextureId, mSTMatrix);
 				
+				if (destpg == null) {
+					destpg = (PGraphicsOpenGL) parent.createGraphics(width, height, P2D);
+					
+					destpg.beginDraw();
+				    destpg.background(0, 0);
+				    pgl = destpg.beginPGL();
+				    pgl.drawTexture(PGL.TEXTURE_2D, customTexture.glName, width, height, 
+				                    0, 0, width, height);
+				    destpg.endPGL();
+				    destpg.endDraw();
+
+				    // Uses the PGraphics texture as the cache object for the image
+				    Texture tex = destpg.getTexture();
+				    pg.setCache(Capture.this, tex);
+				} else {
+					destpg.beginDraw();
+				    destpg.background(0, 0);
+				    pgl = destpg.beginPGL();
+				    pgl.drawTexture(PGL.TEXTURE_2D, customTexture.glName, width, height, 
+				                    0, 0, width, height);
+				    destpg.endPGL();
+				    destpg.endDraw();
+				}
+
+				/*
 				pixelBuffer.position(0);
 				GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixelBuffer);
 				pixelBuffer.position(0);
 				pixelBuffer.get(Capture.this.pixels);
-				updatePixels();
+				updatePixels(); */
 				
 				//Fall back to default frame buffer
 				GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
