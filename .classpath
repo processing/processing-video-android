@@ -2,6 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/processing-core"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/android-mode"/>
+	<classpathentry kind="lib" path="/home/omerjerk/sdk/platforms/android-21/android.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
