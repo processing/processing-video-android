@@ -296,29 +296,7 @@ public class Capture extends PImage implements PConstants,
 				surfaceTexture.getTransformMatrix(mSTMatrix);
 				mFullScreen.drawFrame(mTextureId, mSTMatrix);
 				
-				if (destpg == null) {
-					destpg = (PGraphicsOpenGL) parent.createGraphics(width, height, P2D);
-					
-					destpg.beginDraw();
-				    destpg.background(0, 0);
-				    pgl = destpg.beginPGL();
-				    pgl.drawTexture(PGL.TEXTURE_2D, customTexture.glName, width, height, 
-				                    0, 0, width, height);
-				    destpg.endPGL();
-				    destpg.endDraw();
-
-				    // Uses the PGraphics texture as the cache object for the image
-				    Texture tex = destpg.getTexture();
-				    pg.setCache(Capture.this, tex);
-				} else {
-					destpg.beginDraw();
-				    destpg.background(0, 0);
-				    pgl = destpg.beginPGL();
-				    pgl.drawTexture(PGL.TEXTURE_2D, customTexture.glName, width, height, 
-				                    0, 0, width, height);
-				    destpg.endPGL();
-				    destpg.endDraw();
-				}
+				getImage(false);
 
 				/*
 				pixelBuffer.position(0);
@@ -385,5 +363,29 @@ public class Capture extends PImage implements PConstants,
         if (status != GLES20.GL_FRAMEBUFFER_COMPLETE) {
             throw new RuntimeException("Framebuffer not complete, status=" + status);
         }
+	}
+	
+	public void getImage(boolean loadPixels) {
+        
+	    if (destpg == null || destpg.width != width || destpg.height != height) {
+	    	destpg = (PGraphicsOpenGL) parent.createGraphics(width, height, PConstants.P2D);
+	    }
+	    
+	    destpg.beginDraw();
+	    destpg.background(0, 0);
+	    PGL pgl = destpg.beginPGL();
+	    pgl.drawTexture(PGL.TEXTURE_2D, customTexture.glName, width, height,
+	                    0, 0, width, height);
+	    destpg.endPGL();
+	    destpg.endDraw();
+
+	    // Uses the PGraphics texture as the cache object for the image
+	    Texture tex = destpg.getTexture();
+	    pg.setCache(this, tex);
+	    if (loadPixels) {
+	      this.loadPixels();
+	      tex.get(this.pixels);
+	      this.setLoaded(false);
+	    }
 	}
 }
