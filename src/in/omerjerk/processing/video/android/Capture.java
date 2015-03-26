@@ -84,7 +84,7 @@ public class Capture extends PImage implements PConstants,
 		pg = (PGraphicsOpenGL)applet.g;
 //		customTexture = new Texture(pg, width, height);
 //		customTexture.invertedY(true);
-		log("cusotm texture address = " + customTexture);
+		log("cusotm texture address = " + customTexture.get(0));
 //		pg.setCache(this, customTexture);
 		applet.runOnUiThread(new Runnable() {
 			@Override
@@ -366,6 +366,7 @@ public class Capture extends PImage implements PConstants,
         }
 	}
 	
+	//The following method has been copied from Syphon library for processing
 	public void getImage(boolean loadPixels) {
         
 	    if (destpg == null || destpg.width != width || destpg.height != height) {
