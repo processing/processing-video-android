@@ -8,9 +8,7 @@ import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
-import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
-import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.os.Message;
@@ -18,7 +16,6 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import processing.core.PConstants;
 import processing.core.PApplet;
-import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.opengl.PGL;
 import processing.opengl.PGraphicsOpenGL;
@@ -372,7 +369,8 @@ public class Capture extends PImage implements PConstants,
 	public void getImage(boolean loadPixels) {
         
 	    if (destpg == null || destpg.width != width || destpg.height != height) {
-	    	destpg = (PGraphicsOpenGL) parent.createGraphics(width, height, PConstants.P2D);
+	    	    destpg = (PGraphicsOpenGL) parent.createGraphics(width, height, PConstants.P2D);
+	    	    destpg.pgl.setGlThread(Thread.currentThread());
 	    }
 	    
 	    destpg.beginDraw();
