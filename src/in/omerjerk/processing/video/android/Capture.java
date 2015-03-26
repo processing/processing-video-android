@@ -17,6 +17,7 @@ import android.view.SurfaceHolder;
 import processing.core.PConstants;
 import processing.core.PApplet;
 import processing.core.PImage;
+import processing.opengl.PGL;
 import processing.opengl.PGraphicsOpenGL;
 import processing.opengl.Texture;
 
@@ -48,14 +49,18 @@ public class Capture extends PImage implements PConstants,
 	private int mTextureId;
 	private final float[] mSTMatrix = new float[16];
 	
-	private Texture customTexture;
+//	private Texture customTexture;
 	private PGraphicsOpenGL pg;
 	private IntBuffer pixelBuffer;
+	
+	private PGraphicsOpenGL destpg;
+	PGL pgl;
 
 	private CameraHandler mCameraHandler;
 	
 	IntBuffer frameBuffers = IntBuffer.allocate(1);
 	IntBuffer renderBuffers = IntBuffer.allocate(1);
+	IntBuffer customTexture = IntBuffer.allocate(1);
 
 	public Capture(PApplet context) {
 		this(context, -1, -1);
@@ -77,10 +82,10 @@ public class Capture extends PImage implements PConstants,
 		applet.registerMethod("resume", this);
 		glView = (GLSurfaceView) applet.getSurfaceView();
 		pg = (PGraphicsOpenGL)applet.g;
-		customTexture = new Texture(pg, width, height);
-		customTexture.invertedY(true);
-		log("cusotm texture address = " + customTexture.glName);
-		pg.setCache(this, customTexture);
+//		customTexture = new Texture(pg, width, height);
+//		customTexture.invertedY(true);
+		log("cusotm texture address = " + customTexture);
+//		pg.setCache(this, customTexture);
 		applet.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -289,11 +294,14 @@ public class Capture extends PImage implements PConstants,
 				surfaceTexture.getTransformMatrix(mSTMatrix);
 				mFullScreen.drawFrame(mTextureId, mSTMatrix);
 				
+				getImage(false);
+
+				/*
 				pixelBuffer.position(0);
 				GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixelBuffer);
 				pixelBuffer.position(0);
 				pixelBuffer.get(Capture.this.pixels);
-				updatePixels();
+				updatePixels(); */
 				
 				//Fall back to default frame buffer
 				GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
@@ -326,19 +334,22 @@ public class Capture extends PImage implements PConstants,
 		GLES20.glFramebufferRenderbuffer(GLES20.GL_FRAMEBUFFER, GLES20.GL_DEPTH_ATTACHMENT,
                 GLES20.GL_RENDERBUFFER, renderBuffers.get(0));
 		GlUtil.checkGlError("glFramebufferRenderbuffer");
+		
+		GLES20.glGenTextures(1, customTexture);
+		GlUtil.checkGlError("glGenTextures");
 
-		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, customTexture.glName);
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, customTexture.get(0));
 		GlUtil.checkGlError("glBindTexture");
-		/*
+		
 		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
 		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
 		GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
-		GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);*/
+		GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
 		GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
 		GlUtil.checkGlError("glTexImage2D");
 
 		GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,
-                GLES20.GL_TEXTURE_2D, customTexture.glName, 0);
+                GLES20.GL_TEXTURE_2D, customTexture.get(0), 0);
 		GlUtil.checkGlError("glFramebufferTexture2D");
 		
 		/*
@@ -353,5 +364,30 @@ public class Capture extends PImage implements PConstants,
         if (status != GLES20.GL_FRAMEBUFFER_COMPLETE) {
             throw new RuntimeException("Framebuffer not complete, status=" + status);
         }
+	}
+	
+	public void getImage(boolean loadPixels) {
+        
+	    if (destpg == null || destpg.width != width || destpg.height != height) {
+	    	    destpg = (PGraphicsOpenGL) parent.createGraphics(width, height, PConstants.P2D);
+	    	    destpg.pgl.setGlThread(Thread.currentThread());
+	    }
+	    
+	    destpg.beginDraw();
+	    destpg.background(0, 0);
+	    PGL pgl = destpg.beginPGL();
+	    pgl.drawTexture(PGL.TEXTURE_2D, customTexture.get(0), width, height,
+	                    0, 0, width, height);
+	    destpg.endPGL();
+	    destpg.endDraw();
+
+	    // Uses the PGraphics texture as the cache object for the image
+	    Texture tex = destpg.getTexture();
+	    pg.setCache(this, tex);
+	    if (loadPixels) {
+	      this.loadPixels();
+	      tex.get(this.pixels);
+	      this.setLoaded(false);
+	    }
 	}
 }
