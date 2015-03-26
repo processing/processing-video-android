@@ -51,10 +51,8 @@ public class Capture extends PImage implements PConstants,
 	
 //	private Texture customTexture;
 	private PGraphicsOpenGL pg;
-	private IntBuffer pixelBuffer;
 	
 	private PGraphicsOpenGL destpg;
-	PGL pgl;
 
 	private CameraHandler mCameraHandler;
 	
@@ -75,8 +73,6 @@ public class Capture extends PImage implements PConstants,
 			height = 1280;
 		}
 		init(width, height, ARGB);
-		pixelBuffer = IntBuffer.allocate(width * height);
-		pixelBuffer.position(0);
 		
 		applet.registerMethod("pause", this);
 		applet.registerMethod("resume", this);
@@ -166,9 +162,9 @@ public class Capture extends PImage implements PConstants,
 		// TODO: Release Camera resources
 	}
 
-	public String[] list() {
-		if (applet.getPackageManager().hasSystemFeature(
-				PackageManager.FEATURE_CAMERA)) {
+	public static String[] list() {
+//		if (applet.getPackageManager().hasSystemFeature(
+//				PackageManager.FEATURE_CAMERA)) {
 			int nOfCameras = Camera.getNumberOfCameras();
 			for (int i = 0; i < nOfCameras; ++i) {
 				Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
@@ -183,8 +179,8 @@ public class Capture extends PImage implements PConstants,
 			String[] array = new String[nOfCameras];
 			camerasList.toArray(array);
 			return array;
-		}
-		return null;
+//		}
+//		return null;
 	}
 
 	private void startPreview(SurfaceHolder mHolder) {
@@ -353,7 +349,7 @@ public class Capture extends PImage implements PConstants,
 		GlUtil.checkGlError("glFramebufferTexture2D");
 		
 		/*
-		//No sure if this is required in opengl 2. Ignoring as of now.
+		//No sure if this is required in opengl es 2. Ignoring as of now.
 		IntBuffer drawBuffers = IntBuffer.allocate(1);
 		drawBuffers.put(0, GLES20.GL_COLOR_ATTACHMENT0);
 		GLES30.glDrawBuffers(1, drawBuffers);
