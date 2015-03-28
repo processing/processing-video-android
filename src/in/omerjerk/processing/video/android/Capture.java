@@ -59,6 +59,8 @@ public class Capture extends PImage implements PConstants,
 	IntBuffer renderBuffers = IntBuffer.allocate(1);
 	IntBuffer customTexture = IntBuffer.allocate(1);
 	
+//	private IntBuffer pixelBuffer;
+	
 	private boolean isAvailable = false;
 
 	public Capture(PApplet context) {
@@ -122,7 +124,19 @@ public class Capture extends PImage implements PConstants,
 	@Override
 	public void loadPixels() {
 		super.loadPixels();
-		//TODO: implement loadPixels intelligently
+		//It's ultra slow right now
+		/*
+		if (pixelBuffer == null) {
+			pixelBuffer = IntBuffer.allocate(width * height);
+		}
+		pixelBuffer.position(0);
+		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffers.get(0));
+		GLES20.glViewport(0, 0, width, height);
+		GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixelBuffer);
+		pixelBuffer.position(0);
+		pixelBuffer.get(Capture.this.pixels);
+		*/
+		getImage(true);
 	}
 
 	public void pause() {
@@ -419,7 +433,7 @@ public class Capture extends PImage implements PConstants,
 	    Texture tex = destpg.getTexture();
 	    pg.setCache(this, tex);
 	    if (loadPixels) {
-	      this.loadPixels();
+	      super.loadPixels();
 	      tex.get(this.pixels);
 	      this.setLoaded(false);
 	    }
