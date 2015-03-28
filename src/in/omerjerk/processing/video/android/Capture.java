@@ -12,7 +12,6 @@ import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.view.SurfaceHolder;
 import processing.core.PConstants;
 import processing.core.PApplet;
 import processing.core.PImage;
@@ -22,7 +21,7 @@ import processing.opengl.Texture;
 
 @SuppressWarnings("deprecation")
 public class Capture extends PImage implements PConstants,
-		SurfaceHolder.Callback, CameraHandlerCallback, SurfaceTexture.OnFrameAvailableListener {
+		CameraHandlerCallback, SurfaceTexture.OnFrameAvailableListener {
 
 	private static final boolean DEBUG = true;
 
@@ -72,14 +71,20 @@ public class Capture extends PImage implements PConstants,
 			height = 1280;
 		}
 		init(width, height, ARGB);
-		
+
 		applet.registerMethod("pause", this);
 		applet.registerMethod("resume", this);
 		glView = (GLSurfaceView) applet.getSurfaceView();
 		pg = (PGraphicsOpenGL)applet.g;
 //		customTexture = new Texture(pg, width, height);
 //		customTexture.invertedY(true);
-		log("cusotm texture address = " + customTexture.get(0));
+		glView.queueEvent(new Runnable() {
+			@Override
+			public void run() {
+				createSurfaceTexture();
+				prepareFrameBuffers();
+			}
+		});
 //		pg.setCache(this, customTexture);
 		applet.runOnUiThread(new Runnable() {
 			@Override
@@ -133,11 +138,7 @@ public class Capture extends PImage implements PConstants,
 		glView.queueEvent(new Runnable() {
 			@Override
 			public void run() {
-				mFullScreen = new FullFrameRect(
-		                new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT));
-		        mTextureId = mFullScreen.createTextureObject();
-		        mSurfaceTexture = new SurfaceTexture(mTextureId);
-		        mSurfaceTexture.setOnFrameAvailableListener(Capture.this);
+				createSurfaceTexture();
 		        prepareFrameBuffers();
 		        
 		        //If camera is not null, the activity was started already and we're coming back from a pause.
@@ -153,23 +154,7 @@ public class Capture extends PImage implements PConstants,
 			}
 		});
 	}
-
-	@Override
-	public void surfaceCreated(SurfaceHolder holder) {
-		log("surfaceCreated");
-	}
-
-	@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width,
-			int height) {
-		log("surfaceChanged");
-	}
-
-	@Override
-	public void surfaceDestroyed(SurfaceHolder holder) {
-		log("surface destroyed");
-	}
-
+	
 	public static String[] list() {
 		//The following check has to be commented to make list() method static
 //		if (applet.getPackageManager().hasSystemFeature(
@@ -336,8 +321,16 @@ public class Capture extends PImage implements PConstants,
 			}
 		});
 	}
+	
+	private void createSurfaceTexture() {
+		mFullScreen = new FullFrameRect(
+                new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT));
+        mTextureId = mFullScreen.createTextureObject();
+        mSurfaceTexture = new SurfaceTexture(mTextureId);
+        mSurfaceTexture.setOnFrameAvailableListener(Capture.this);
+	}
 
-	public void prepareFrameBuffers() {
+	private void prepareFrameBuffers() {
 		
 		GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
 		
