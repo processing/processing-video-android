@@ -114,9 +114,15 @@ public class Capture extends PImage implements PConstants,
 		mCameraHandler.sendMessage(mCameraHandler.obtainMessage(
 				CameraHandler.MSG_START_PREVIEW));
 	}
-	
+
 	public boolean available() {
 		return isAvailable;
+	}
+	
+	@Override
+	public void loadPixels() {
+		super.loadPixels();
+		//TODO: implement loadPixels intelligently
 	}
 
 	public void pause() {
