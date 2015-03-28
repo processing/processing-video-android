@@ -1,5 +1,6 @@
 package in.omerjerk.processing.video.android;
 
+import java.io.IOException;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +58,8 @@ public class Capture extends PImage implements PConstants,
 	IntBuffer frameBuffers = IntBuffer.allocate(1);
 	IntBuffer renderBuffers = IntBuffer.allocate(1);
 	IntBuffer customTexture = IntBuffer.allocate(1);
+	
+	private boolean isAvailable = false;
 
 	public Capture(PApplet context) {
 		this(context, -1, -1);
@@ -111,9 +114,14 @@ public class Capture extends PImage implements PConstants,
 		mCameraHandler.sendMessage(mCameraHandler.obtainMessage(
 				CameraHandler.MSG_START_PREVIEW));
 	}
+	
+	public boolean available() {
+		return isAvailable;
+	}
 
 	public void pause() {
 		log("pause called");
+		isAvailable = false;
 		if (mCamera != null) {
 			mCamera.release();
         }
@@ -242,7 +250,13 @@ public class Capture extends PImage implements PConstants,
 	}
 
 	@Override
-	public void handleSetSurfaceTexture(SurfaceTexture st) {}
+	public void handleSetSurfaceTexture(SurfaceTexture st) {
+		try {
+			mCamera.setPreviewTexture(mSurfaceTexture);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	@Override
 	public void startCamera(Integer cameraId) {
@@ -269,22 +283,13 @@ public class Capture extends PImage implements PConstants,
 
 	@Override
 	public void startPreview() {
-
 		if (applet.getSurfaceHolder().getSurface() == null) {
 			// preview surface does not exist
 			return;
 		}
 
-		// stop preview before making changes
-		try {
-			mCamera.stopPreview();
-		} catch (Exception e) {
-			// ignore: tried to stop a non-existent preview
-		}
-
 		// start preview with new settings
 		try {
-			mCamera.setPreviewTexture(mSurfaceTexture);
 			mCamera.startPreview();
 			log("Started the preview");
 		} catch (Exception e) {
@@ -299,7 +304,8 @@ public class Capture extends PImage implements PConstants,
 		glView.queueEvent(new Runnable() {
 			@Override
 			public void run() {
-				System.out.println("onFrameAvailable");
+				log("onFrameAvailable");
+				isAvailable = true;
 				surfaceTexture.updateTexImage();
 				
 				GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffers.get(0));
