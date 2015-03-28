@@ -4,7 +4,6 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
@@ -88,22 +87,6 @@ public class Capture extends PImage implements PConstants,
 				mCameraHandler = new CameraHandler(Capture.this);
 			}
 		});
-
-		glView.queueEvent(new Runnable() {
-			@Override
-			public void run() {
-				mFullScreen = new FullFrameRect(
-		                new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT));
-				mTextureId = mFullScreen.createTextureObject();
-
-				mSurfaceTexture = new SurfaceTexture(mTextureId);
-				mSurfaceTexture.setOnFrameAvailableListener(Capture.this);
-//				mCameraHandler.sendMessage(mCameraHandler.obtainMessage(CameraHandler.MSG_START_CAMERA, null));
-				startCameraImpl(0);
-				System.out.println("sent starting message to UI thread");
-				prepareFrameBuffers();
-			}
-		});
 	}
 
 	public void setCamera(String camera) {
@@ -113,56 +96,82 @@ public class Capture extends PImage implements PConstants,
 			selectedCamera = camerasList.indexOf(camera);
 		}
 		log("Selected camera = " + selectedCamera);
-		startCameraImpl(selectedCamera);
+		mCameraHandler.sendMessage(mCameraHandler.obtainMessage(
+				CameraHandler.MSG_START_CAMERA, new Integer(selectedCamera)));
+		mCameraHandler.sendMessage(mCameraHandler.obtainMessage(
+				CameraHandler.MSG_SET_SURFACE_TEXTURE, mSurfaceTexture));
 	}
-	
-	public void startCameraImpl(int cameraId) {
-		try {
-			mCamera = Camera.open(cameraId);
-			mCamera.setDisplayOrientation(90);
-			startPreview(applet.getSurfaceHolder());
-		} catch (Exception e) {
-			log("Couldn't open the Camera");
-			e.printStackTrace();
-		}
+
+	public void start() {
+		mCameraHandler.sendMessage(mCameraHandler.obtainMessage(
+				CameraHandler.MSG_START_PREVIEW));
 	}
-	
+
 	public void pause() {
 		log("pause called");
 		if (mCamera != null) {
 			mCamera.release();
         }
-		/*
-		if (mFullScreen != null) {
-            mFullScreen.release(false);     // assume the GLSurfaceView EGL context is about
-            mFullScreen = null;             //  to be destroyed
-        }*/
+		
+		glView.queueEvent(new Runnable() {
+			@Override
+			public void run() {
+				if (mSurfaceTexture != null) {
+					mSurfaceTexture.release();
+					mSurfaceTexture = null;
+				}
+				if (mFullScreen != null) {
+		            mFullScreen.release(false);     // assume the GLSurfaceView EGL context is about
+		            mFullScreen = null;             //  to be destroyed
+		        }
+			}
+		});
 	}
-	
+
 	public void resume() {
 		log("resume called");
-		if (selectedCamera != -1) {
-			startCameraImpl(selectedCamera);
-		}
+		glView.queueEvent(new Runnable() {
+			@Override
+			public void run() {
+				mFullScreen = new FullFrameRect(
+		                new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT));
+		        mTextureId = mFullScreen.createTextureObject();
+		        mSurfaceTexture = new SurfaceTexture(mTextureId);
+		        mSurfaceTexture.setOnFrameAvailableListener(Capture.this);
+		        prepareFrameBuffers();
+		        
+		        //If camera is not null, the activity was started already and we're coming back from a pause.
+				if (mCamera != null) {
+					log("Starting Camera in resume");
+					mCameraHandler.sendMessage(mCameraHandler.obtainMessage(
+							CameraHandler.MSG_START_CAMERA, new Integer(selectedCamera)));
+					mCameraHandler.sendMessage(mCameraHandler.obtainMessage(
+							CameraHandler.MSG_SET_SURFACE_TEXTURE, mSurfaceTexture));
+					mCameraHandler.sendMessage(mCameraHandler.obtainMessage(
+							CameraHandler.MSG_START_PREVIEW));
+				}
+			}
+		});
 	}
 
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		startPreview(holder);
+		log("surfaceCreated");
 	}
 
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
-		startPreview(holder);
+		log("surfaceChanged");
 	}
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
-		// TODO: Release Camera resources
+		log("surface destroyed");
 	}
 
 	public static String[] list() {
+		//The following check has to be commented to make list() method static
 //		if (applet.getPackageManager().hasSystemFeature(
 //				PackageManager.FEATURE_CAMERA)) {
 			int nOfCameras = Camera.getNumberOfCameras();
@@ -183,38 +192,11 @@ public class Capture extends PImage implements PConstants,
 //		return null;
 	}
 
-	private void startPreview(SurfaceHolder mHolder) {
-
-		if (mHolder.getSurface() == null) {
-			// preview surface does not exist
-			return;
-		}
-
-		// stop preview before making changes
-		try {
-			mCamera.stopPreview();
-		} catch (Exception e) {
-			// ignore: tried to stop a non-existent preview
-		}
-
-		// set preview size and make any resize, rotate or
-		// reformatting changes here
-
-		// start preview with new settings
-		try {
-			mCamera.setPreviewTexture(mSurfaceTexture);
-			mCamera.startPreview();
-			log("Started the preview");
-		} catch (Exception e) {
-			Log.d("PROCESSING",
-					"Error starting camera preview: " + e.getMessage());
-			e.printStackTrace();
-		}
-	}	
-
 	static class CameraHandler extends Handler {
         public static final int MSG_SET_SURFACE_TEXTURE = 0;
         public static final int MSG_START_CAMERA = 1;
+        public static final int MSG_STOP_CAMERA = 2;
+        public static final int MSG_START_PREVIEW = 3;
 
         // Weak reference to the Activity; only access this from the UI thread.
         private CameraHandlerCallback callback;
@@ -238,7 +220,13 @@ public class Capture extends PImage implements PConstants,
                 	callback.handleSetSurfaceTexture((SurfaceTexture) inputMessage.obj);
                     break;
                 case MSG_START_CAMERA:
-                	callback.startCamera();
+                	callback.startCamera((Integer) inputMessage.obj);
+                	break;
+                case MSG_START_PREVIEW:
+                	callback.startPreview();
+                	break;
+                case MSG_STOP_CAMERA:
+                	callback.stopCamera();
                 	break;
                 default:
                     throw new RuntimeException("unknown msg " + what);
@@ -272,10 +260,54 @@ public class Capture extends PImage implements PConstants,
 	public void handleSetSurfaceTexture(SurfaceTexture st) {}
 	
 	@Override
-	public void startCamera() {
+	public void startCamera(Integer cameraId) {
 		System.out.println("Start Camera Impl");
-		startCameraImpl(0);
-	};
+		if (cameraId == null) {
+			cameraId = 0;
+		}
+		try {
+			mCamera = Camera.open(cameraId);
+			mCamera.setDisplayOrientation(90);
+		} catch (Exception e) {
+			log("Couldn't open the Camera");
+			e.printStackTrace();
+		}
+	}
+	
+	@Override
+	public void stopCamera() {
+		if (mCamera != null) {
+			mCamera.release();
+			mCamera = null;
+		}
+	}
+
+	@Override
+	public void startPreview() {
+
+		if (applet.getSurfaceHolder().getSurface() == null) {
+			// preview surface does not exist
+			return;
+		}
+
+		// stop preview before making changes
+		try {
+			mCamera.stopPreview();
+		} catch (Exception e) {
+			// ignore: tried to stop a non-existent preview
+		}
+
+		// start preview with new settings
+		try {
+			mCamera.setPreviewTexture(mSurfaceTexture);
+			mCamera.startPreview();
+			log("Started the preview");
+		} catch (Exception e) {
+			Log.d("PROCESSING",
+					"Error starting camera preview: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
 
 	@Override
 	public void onFrameAvailable(final SurfaceTexture surfaceTexture) {
@@ -299,7 +331,7 @@ public class Capture extends PImage implements PConstants,
 				pixelBuffer.get(Capture.this.pixels);
 				updatePixels(); */
 				
-				//Fall back to default frame buffer
+				//Fall back to default frame buffer. Not sure if needed.
 				GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
 			}
 		});
@@ -366,7 +398,7 @@ public class Capture extends PImage implements PConstants,
 	public void getImage(boolean loadPixels) {
         
 	    if (destpg == null || destpg.width != width || destpg.height != height) {
-	    	    destpg = (PGraphicsOpenGL) parent.createGraphics(width, height, PConstants.P2D);
+	    	    destpg = (PGraphicsOpenGL) applet.createGraphics(width, height, PConstants.P2D);
 	    	    destpg.pgl.setGlThread(Thread.currentThread());
 	    }
 	    
