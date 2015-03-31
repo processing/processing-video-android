@@ -31,8 +31,6 @@ public class Capture extends PImage implements PConstants,
 			System.out.println(log);
 	}
 
-	private PApplet applet;
-
 	private Camera mCamera;
 
 	private static ArrayList<String> camerasList = new ArrayList<String>();
@@ -63,13 +61,13 @@ public class Capture extends PImage implements PConstants,
 	
 	private boolean isAvailable = false;
 
-	public Capture(PApplet context) {
-		this(context, -1, -1);
+	public Capture(PApplet parent) {
+		this(parent, -1, -1);
 	}
 
-	public Capture(final PApplet applet, int width, int height) {
+	public Capture(final PApplet parent, int width, int height) {
 		super();
-		this.applet = applet;
+		this.parent = parent;
 		if (width == -1 || height == -1) {
 			//TODO: Temp hack. Needs to be handled intelligently.
 			width = 720;
@@ -77,10 +75,10 @@ public class Capture extends PImage implements PConstants,
 		}
 		init(width, height, ARGB);
 
-		applet.registerMethod("pause", this);
-		applet.registerMethod("resume", this);
-		glView = (GLSurfaceView) applet.getSurfaceView();
-		pg = (PGraphicsOpenGL)applet.g;
+		parent.registerMethod("pause", this);
+		parent.registerMethod("resume", this);
+		glView = (GLSurfaceView) parent.getSurfaceView();
+		pg = (PGraphicsOpenGL)parent.g;
 //		customTexture = new Texture(pg, width, height);
 //		customTexture.invertedY(true);
 		glView.queueEvent(new Runnable() {
@@ -91,7 +89,7 @@ public class Capture extends PImage implements PConstants,
 			}
 		});
 //		pg.setCache(this, customTexture);
-		applet.runOnUiThread(new Runnable() {
+		parent.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
 				mCameraHandler = new CameraHandler(Capture.this);
@@ -303,7 +301,7 @@ public class Capture extends PImage implements PConstants,
 
 	@Override
 	public void startPreview() {
-		if (applet.getSurfaceHolder().getSurface() == null) {
+		if (parent.getSurfaceHolder().getSurface() == null) {
 			// preview surface does not exist
 			return;
 		}
@@ -417,7 +415,7 @@ public class Capture extends PImage implements PConstants,
 	public void getImage(boolean loadPixels) {
         
 	    if (destpg == null || destpg.width != width || destpg.height != height) {
-	    	    destpg = (PGraphicsOpenGL) applet.createGraphics(width, height, PConstants.P2D);
+	    	    destpg = (PGraphicsOpenGL) parent.createGraphics(width, height, PConstants.P2D);
 	    	    destpg.pgl.setGlThread(Thread.currentThread());
 	    }
 	    
