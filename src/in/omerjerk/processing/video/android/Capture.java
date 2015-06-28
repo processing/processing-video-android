@@ -5,6 +5,7 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.app.Activity;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
@@ -25,6 +26,8 @@ public class Capture extends PImage implements PConstants,
 		CameraHandlerCallback, SurfaceTexture.OnFrameAvailableListener {
 
 	private static final boolean DEBUG = true;
+	
+	private Activity activity;
 
 	public static void log(String log) {
 		if (DEBUG)
@@ -89,7 +92,8 @@ public class Capture extends PImage implements PConstants,
 			}
 		});
 //		pg.setCache(this, customTexture);
-		parent.runOnUiThread(new Runnable() {
+		activity = parent.getActivity();
+		activity.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
 				mCameraHandler = new CameraHandler(Capture.this);
