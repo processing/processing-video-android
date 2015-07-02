@@ -9,17 +9,14 @@ Capture cap;
 
 void setup() {
   
-  //size(640, 360, P3D);
+  size(640, 360, P2D);
   
   cap = new Capture(this);
   String[] list = cap.list();
-  //cap.setCamera(list[0]);
+  cap.setCamera(list[0]);
+  cap.start();
 }
 
 void draw() {
-  //image(cap, 0, 0);
-}
-
-public String sketchRenderer() {
-  return P2D;
+  image(cap, 0, 0);
 }
