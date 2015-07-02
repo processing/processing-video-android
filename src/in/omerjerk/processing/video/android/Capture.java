@@ -223,9 +223,7 @@ public class Capture extends PImage implements PConstants,
         @Override  // runs on UI thread
         public void handleMessage(Message inputMessage) {
             int what = inputMessage.what;
-            log("CameraHandler [" + this + "]: what=" + what);
 
-//            MainActivity activity = mWeakActivity.get();
             if (callback == null) {
                 return;
             }
@@ -287,6 +285,7 @@ public class Capture extends PImage implements PConstants,
 			cameraId = 0;
 		}
 		try {
+		    log("Starting camera with camera id = " + cameraId);
 			mCamera = Camera.open(cameraId);
 			mCamera.setDisplayOrientation(90);
 		} catch (Exception e) {
@@ -419,8 +418,8 @@ public class Capture extends PImage implements PConstants,
 	public void getImage(boolean loadPixels) {
         
 	    if (destpg == null || destpg.width != width || destpg.height != height) {
-	    	    destpg = (PGraphicsOpenGL) parent.createGraphics(width, height, PConstants.P2D);
-	    	    destpg.pgl.setGlThread(Thread.currentThread());
+	    	destpg = (PGraphicsOpenGL) parent.createGraphics(width, height, PConstants.P2D);
+	    	destpg.pgl.setGlThread(Thread.currentThread());
 	    }
 	    
 	    destpg.beginDraw();
