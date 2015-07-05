@@ -1,10 +1,8 @@
 package in.omerjerk.processing.video.android;
 
 import processing.core.PApplet;
-import processing.core.PConstants;
-import processing.core.PImage;
 
-public class Movie extends PImage implements PConstants {
+public class Movie extends VideoBase {
 	
 	public Movie(PApplet parent) {
 		this(parent, -1, -1);

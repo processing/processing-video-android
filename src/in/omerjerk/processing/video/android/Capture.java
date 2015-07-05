@@ -20,14 +20,13 @@ import android.os.Message;
 import android.util.Log;
 import processing.core.PConstants;
 import processing.core.PApplet;
-import processing.core.PImage;
 import processing.opengl.PGL;
 import processing.opengl.PGraphicsOpenGL;
 import processing.opengl.Texture;
 
 @SuppressWarnings("deprecation")
-public class Capture extends PImage implements PConstants,
-		CameraHandlerCallback, SurfaceTexture.OnFrameAvailableListener {
+public class Capture extends VideoBase implements CameraHandlerCallback,
+		SurfaceTexture.OnFrameAvailableListener {
 
 	private static final boolean DEBUG = true;
 	
@@ -126,12 +125,12 @@ public class Capture extends PImage implements PConstants,
 	public boolean available() {
 		return isAvailable;
 	}
-	
+
 	@Override
 	public void loadPixels() {
 		super.loadPixels();
 		//It's ultra slow right now
-		
+
 		if (pixelBuffer == null) {
 			pixelBuffer = IntBuffer.allocate(width * height);
 		}
@@ -141,8 +140,6 @@ public class Capture extends PImage implements PConstants,
 		GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixelBuffer);
 		pixelBuffer.position(0);
 		pixelBuffer.get(Capture.this.pixels);
-		
-//		getImage(true);
 	}
 
 	public void pause() {
