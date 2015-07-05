@@ -9,10 +9,18 @@ public class Movie extends VideoBase {
 	}
 	
 	public Movie(PApplet parent, int width, int height) {
+	    super(parent);
 		if (width == -1 || height == -1) {
 			width = 720;
 			height = 1280;
 		}
 		init(width, height, ARGB);
 	}
+	
+	@Override
+	public void onPause() {
+	}
+	
+	@Override
+	public void onResume() {}
 }
