@@ -1,4 +1,4 @@
-package in.omerjerk.processing.video.android;
+package in.omerjerk.processing.video.android.helpers;
 
 public class Utils {
 	/**

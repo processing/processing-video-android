@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package in.omerjerk.processing.video.android;
+package in.omerjerk.processing.video.android.helpers;
 
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package in.omerjerk.processing.video.android;
+package in.omerjerk.processing.video.android.helpers;
 
 import java.nio.FloatBuffer;
 

@@ -1,5 +1,9 @@
 package in.omerjerk.processing.video.android;
 
+import in.omerjerk.processing.video.android.helpers.FullFrameRect;
+import in.omerjerk.processing.video.android.helpers.GlUtil;
+import in.omerjerk.processing.video.android.helpers.Texture2dProgram;
+
 import java.io.IOException;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -60,7 +64,7 @@ public class Capture extends PImage implements PConstants,
 	IntBuffer renderBuffers = IntBuffer.allocate(1);
 	IntBuffer customTexture = IntBuffer.allocate(1);
 	
-//	private IntBuffer pixelBuffer;
+	private IntBuffer pixelBuffer;
 	
 	private boolean isAvailable = false;
 
@@ -127,7 +131,7 @@ public class Capture extends PImage implements PConstants,
 	public void loadPixels() {
 		super.loadPixels();
 		//It's ultra slow right now
-		/*
+		
 		if (pixelBuffer == null) {
 			pixelBuffer = IntBuffer.allocate(width * height);
 		}
@@ -137,8 +141,8 @@ public class Capture extends PImage implements PConstants,
 		GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixelBuffer);
 		pixelBuffer.position(0);
 		pixelBuffer.get(Capture.this.pixels);
-		*/
-		getImage(true);
+		
+//		getImage(true);
 	}
 
 	public void pause() {
