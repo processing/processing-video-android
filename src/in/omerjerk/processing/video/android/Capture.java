@@ -1,20 +1,16 @@
 package in.omerjerk.processing.video.android;
 
 import java.io.IOException;
-import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
-import android.opengl.GLES20;
-import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import processing.core.PApplet;
-import processing.opengl.PGraphicsOpenGL;
 
 @SuppressWarnings("deprecation")
 public class Capture extends VideoBase implements CameraHandlerCallback {
@@ -36,27 +32,7 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 
 	public Capture(final PApplet parent, int width, int height) {
 		super(parent);
-		this.parent = parent;
-		if (width == -1 || height == -1) {
-			//TODO: Temp hack. Needs to be handled intelligently.
-			width = 720;
-			height = 1280;
-		}
-		init(width, height, ARGB);
 
-		glView = (GLSurfaceView) parent.getSurfaceView();
-		pg = (PGraphicsOpenGL)parent.g;
-//		customTexture = new Texture(pg, width, height);
-//		customTexture.invertedY(true);
-		glView.queueEvent(new Runnable() {
-			@Override
-			public void run() {
-				createSurfaceTexture();
-				prepareFrameBuffers();
-			}
-		});
-//		pg.setCache(this, customTexture);
-		activity = parent.getActivity();
 		activity.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -81,22 +57,6 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 	public void start() {
 		mCameraHandler.sendMessage(mCameraHandler.obtainMessage(
 				CameraHandler.MSG_START_PREVIEW));
-	}
-
-	@Override
-	public void loadPixels() {
-		super.loadPixels();
-		//It's ultra slow right now
-
-		if (pixelBuffer == null) {
-			pixelBuffer = IntBuffer.allocate(width * height);
-		}
-		pixelBuffer.position(0);
-		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffers.get(0));
-		GLES20.glViewport(0, 0, width, height);
-		GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixelBuffer);
-		pixelBuffer.position(0);
-		pixelBuffer.get(Capture.this.pixels);
 	}
 
 	@Override
