@@ -25,6 +25,13 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 	private int selectedCamera = -1;
 
 	private CameraHandler mCameraHandler;
+	
+	public interface CameraHandlerCallback {
+	    public void handleSetSurfaceTexture(SurfaceTexture texture);
+	    public void startCamera(Integer cameraId);
+	    public void startPreview();
+	    public void stopCamera();
+	}
 
 	public Capture(PApplet parent) {
 		this(parent, -1, -1);

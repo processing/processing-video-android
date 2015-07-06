@@ -2,7 +2,11 @@ package in.omerjerk.processing.video.android;
 
 import processing.core.PApplet;
 
-public class Movie extends VideoBase {
+public class Movie extends VideoBase implements MediaPlayerHandlerCallback {
+    
+    public interface MediaPlayerHandlerCallback {
+        public void start();
+    }
 	
 	public Movie(PApplet parent) {
 		this(parent, -1, -1);
@@ -10,11 +14,6 @@ public class Movie extends VideoBase {
 	
 	public Movie(PApplet parent, int width, int height) {
 	    super(parent);
-		if (width == -1 || height == -1) {
-			width = 720;
-			height = 1280;
-		}
-		init(width, height, ARGB);
 	}
 	
 	@Override
