@@ -1,17 +1,17 @@
 package in.omerjerk.processing.video.android;
 
+import in.omerjerk.processing.video.android.callbacks.MediaPlayerHandlerCallback;
+import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.view.Surface;
 import processing.core.PApplet;
 
 public class Movie extends VideoBase implements MediaPlayerHandlerCallback {
     
     private MediaPlayerHandler handler;
-    
-    public interface MediaPlayerHandlerCallback {
-        public void start();
-    }
+    private MediaPlayer player;
 	
 	public Movie(PApplet parent) {
 		this(parent, -1, -1);
@@ -38,7 +38,8 @@ public class Movie extends VideoBase implements MediaPlayerHandlerCallback {
 	
 	private class MediaPlayerHandler extends Handler {
 	    
-	    public static final int MSG_START_MEDIA_PLAYER = 0;
+	    public static final int MSG_INIT_PLAYER = 0;
+	    public static final int MSG_START_PLAYER = 1;
 	    
 	    MediaPlayerHandlerCallback callback;
 	    
@@ -49,12 +50,25 @@ public class Movie extends VideoBase implements MediaPlayerHandlerCallback {
 	    @Override
 	    public void handleMessage(Message msg) {
 	        switch (msg.what) {
-            case MSG_START_MEDIA_PLAYER:
-                callback.start();
+	        case MSG_INIT_PLAYER:
+	            callback.initPlayer();
+	            break;
+            case MSG_START_PLAYER:
+                callback.startPlayer();
                 break;
             default:
                 break;
             }
 	    }
+	}
+	
+	@Override
+	public void initPlayer() {
+	    player = new MediaPlayer();
+	    player.setSurface(new Surface(mSurfaceTexture));
+	}
+	
+	@Override
+	public void startPlayer() {
 	}
 }

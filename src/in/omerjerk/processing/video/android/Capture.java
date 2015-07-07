@@ -1,5 +1,7 @@
 package in.omerjerk.processing.video.android;
 
+import in.omerjerk.processing.video.android.callbacks.CameraHandlerCallback;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,13 +27,6 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 	private int selectedCamera = -1;
 
 	private CameraHandler mCameraHandler;
-	
-	public interface CameraHandlerCallback {
-	    public void handleSetSurfaceTexture(SurfaceTexture texture);
-	    public void startCamera(Integer cameraId);
-	    public void startPreview();
-	    public void stopCamera();
-	}
 
 	public Capture(PApplet parent) {
 		this(parent, -1, -1);
