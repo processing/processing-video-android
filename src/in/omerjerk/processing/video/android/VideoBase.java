@@ -50,7 +50,7 @@ public abstract class VideoBase extends PImage implements PConstants,
     public abstract void onResume();
     public abstract void onPause();
     
-    public VideoBase(PApplet parent) {
+    public VideoBase(PApplet parent, int width, int height) {
         super();
         this.parent = parent;
         if (width == -1 || height == -1) {
@@ -91,67 +91,58 @@ public abstract class VideoBase extends PImage implements PConstants,
     }
 
     protected void prepareFrameBuffers() {
-
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-
-        // Generate frame buffer
+        
+        //Generate frame buffer
         GLES20.glGenFramebuffers(1, frameBuffers);
         GlUtil.checkGlError("glGenFramebuffers");
-        // Bind frame buffer
+        //Bind frame buffer
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffers.get(0));
         GlUtil.checkGlError("glBindFramebuffer");
-
-        // Generate render buffers
+        
+        //Generate render buffers
         GLES20.glGenRenderbuffers(1, renderBuffers);
         GlUtil.checkGlError("glGenRenderbuffers");
-        // Bind render buffers
+        //Bind render buffers
         GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, renderBuffers.get(0));
         GlUtil.checkGlError("glBindRenderbuffer");
-        // Allocate memory to render buffers
-        GLES20.glRenderbufferStorage(GLES20.GL_RENDERBUFFER,
-                GLES20.GL_DEPTH_COMPONENT16, width, height);
+        //Allocate memory to render buffers
+        GLES20.glRenderbufferStorage(GLES20.GL_RENDERBUFFER, GLES20.GL_DEPTH_COMPONENT16, width, height);
         GlUtil.checkGlError("glRenderbufferStorage");
-
-        // Attach render buffer to frame buffer
-        GLES20.glFramebufferRenderbuffer(GLES20.GL_FRAMEBUFFER,
-                GLES20.GL_DEPTH_ATTACHMENT, GLES20.GL_RENDERBUFFER,
-                renderBuffers.get(0));
+        
+        //Attach render buffer to frame buffer
+        GLES20.glFramebufferRenderbuffer(GLES20.GL_FRAMEBUFFER, GLES20.GL_DEPTH_ATTACHMENT,
+                GLES20.GL_RENDERBUFFER, renderBuffers.get(0));
         GlUtil.checkGlError("glFramebufferRenderbuffer");
-
+        
         GLES20.glGenTextures(1, customTexture);
         GlUtil.checkGlError("glGenTextures");
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, customTexture.get(0));
         GlUtil.checkGlError("glBindTexture");
-
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D,
-                GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D,
-                GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S,
-                GLES20.GL_CLAMP_TO_EDGE);
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T,
-                GLES20.GL_CLAMP_TO_EDGE);
-        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width,
-                height, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
+        
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
         GlUtil.checkGlError("glTexImage2D");
 
-        GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER,
-                GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D,
-                customTexture.get(0), 0);
+        GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,
+                GLES20.GL_TEXTURE_2D, customTexture.get(0), 0);
         GlUtil.checkGlError("glFramebufferTexture2D");
-
+        
         /*
-         * //No sure if this is required in opengl es 2. Ignoring as of now.
-         * IntBuffer drawBuffers = IntBuffer.allocate(1); drawBuffers.put(0,
-         * GLES20.GL_COLOR_ATTACHMENT0); GLES30.glDrawBuffers(1, drawBuffers);
-         */
-
+        //No sure if this is required in opengl es 2. Ignoring as of now.
+        IntBuffer drawBuffers = IntBuffer.allocate(1);
+        drawBuffers.put(0, GLES20.GL_COLOR_ATTACHMENT0);
+        GLES30.glDrawBuffers(1, drawBuffers);
+        */
+        
         // See if GLES is happy with all this.
         int status = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER);
         if (status != GLES20.GL_FRAMEBUFFER_COMPLETE) {
-            throw new RuntimeException("Framebuffer not complete, status="
-                    + status);
+            throw new RuntimeException("Framebuffer not complete, status=" + status);
         }
     }
 

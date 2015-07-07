@@ -33,7 +33,7 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 	}
 
 	public Capture(final PApplet parent, int width, int height) {
-		super(parent);
+		super(parent, width, height);
 
 		activity.runOnUiThread(new Runnable() {
 			@Override
