@@ -187,9 +187,29 @@ public abstract class VideoBase extends PImage implements PConstants,
     
     public void pause() {
         onPause();
+        glView.queueEvent(new Runnable() {
+            @Override
+            public void run() {
+                if (mSurfaceTexture != null) {
+                    mSurfaceTexture.release();
+                    mSurfaceTexture = null;
+                }
+                if (mFullScreen != null) {
+                    mFullScreen.release(false);     // assume the GLSurfaceView EGL context is about
+                    mFullScreen = null;             //  to be destroyed
+                }
+            }
+        });
     }
     
     public void resume() {
+        glView.queueEvent(new Runnable() {
+            @Override
+            public void run() {
+                createSurfaceTexture();
+                prepareFrameBuffers();
+            }
+        });
         onResume();
     }
 

@@ -68,20 +68,6 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 		if (mCamera != null) {
 			mCamera.release();
         }
-		
-		glView.queueEvent(new Runnable() {
-			@Override
-			public void run() {
-				if (mSurfaceTexture != null) {
-					mSurfaceTexture.release();
-					mSurfaceTexture = null;
-				}
-				if (mFullScreen != null) {
-		            mFullScreen.release(false);     // assume the GLSurfaceView EGL context is about
-		            mFullScreen = null;             //  to be destroyed
-		        }
-			}
-		});
 	}
 
 	@Override
@@ -90,9 +76,6 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 		glView.queueEvent(new Runnable() {
 			@Override
 			public void run() {
-				createSurfaceTexture();
-		        prepareFrameBuffers();
-		        
 		        //If camera is not null, the activity was started already and we're coming back from a pause.
 				if (mCamera != null) {
 					log("Starting Camera in resume");
