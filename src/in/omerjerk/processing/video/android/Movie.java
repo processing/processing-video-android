@@ -4,6 +4,7 @@ import in.omerjerk.processing.video.android.callbacks.MediaPlayerHandlerCallback
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.view.Surface;
@@ -22,14 +23,11 @@ public class Movie extends VideoBase implements MediaPlayerHandlerCallback {
 	    String width = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH);
 	    init(Integer.valueOf(width), Integer.valueOf(height), ARGB);
 	    
-	    new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Looper.prepare();
-                handler = new MediaPlayerHandler();
-                Looper.loop();
-            }
-        }).start();
+	    HandlerThread backgroundThread = new HandlerThread("MediaPlayer");
+	    backgroundThread.start();
+	    handler = new MediaPlayerHandler(backgroundThread.getLooper());
+	    handler.setCallback(this);
+	    handler.sendMessage(handler.obtainMessage(MediaPlayerHandler.MSG_INIT_PLAYER));
 	}
 	
 	@Override
@@ -46,7 +44,11 @@ public class Movie extends VideoBase implements MediaPlayerHandlerCallback {
 	    
 	    MediaPlayerHandlerCallback callback;
 	    
-	    public void setCallback (MediaPlayerHandlerCallback cb) {
+	    public MediaPlayerHandler(Looper looper) {
+            super(looper);
+        }
+
+        public void setCallback (MediaPlayerHandlerCallback cb) {
 	        this.callback = cb;
 	    }
 	    
