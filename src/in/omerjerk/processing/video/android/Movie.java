@@ -1,6 +1,7 @@
 package in.omerjerk.processing.video.android;
 
 import in.omerjerk.processing.video.android.callbacks.MediaPlayerHandlerCallback;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
@@ -13,12 +14,14 @@ public class Movie extends VideoBase implements MediaPlayerHandlerCallback {
     private MediaPlayerHandler handler;
     private MediaPlayer player;
 	
-	public Movie(PApplet parent) {
-		this(parent, -1, -1);
-	}
-	
-	public Movie(PApplet parent, int width, int height) {
-	    super(parent, width, height);
+	public Movie(PApplet parent, String fileName) {
+	    super(parent);
+	    MediaMetadataRetriever metaRetriever = new MediaMetadataRetriever();
+	    metaRetriever.setDataSource(fileName);
+	    String height = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT);
+	    String width = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH);
+	    init(Integer.valueOf(width), Integer.valueOf(height), ARGB);
+	    
 	    new Thread(new Runnable() {
             @Override
             public void run() {

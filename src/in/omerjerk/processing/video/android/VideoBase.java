@@ -50,15 +50,9 @@ public abstract class VideoBase extends PImage implements PConstants,
     public abstract void onResume();
     public abstract void onPause();
     
-    public VideoBase(PApplet parent, int width, int height) {
+    public VideoBase(PApplet parent) {
         super();
         this.parent = parent;
-        if (width == -1 || height == -1) {
-            //TODO: Temp hack. Needs to be handled intelligently.
-            width = 720;
-            height = 1280;
-        }
-        init(width, height, ARGB);
         
         parent.registerMethod("pause", this);
         parent.registerMethod("resume", this);
