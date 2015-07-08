@@ -1,8 +1,14 @@
 package in.omerjerk.processing.video.android;
 
+import java.io.IOException;
+
+import javax.xml.stream.events.StartDocument;
+
 import in.omerjerk.processing.video.android.callbacks.MediaPlayerHandlerCallback;
+import android.drm.DrmStore.Playback;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -14,6 +20,8 @@ public class Movie extends VideoBase implements MediaPlayerHandlerCallback {
     
     private MediaPlayerHandler handler;
     private MediaPlayer player;
+    
+    private boolean looping = false;
 	
 	public Movie(PApplet parent, String fileName) {
 	    super(parent);
@@ -27,7 +35,15 @@ public class Movie extends VideoBase implements MediaPlayerHandlerCallback {
 	    backgroundThread.start();
 	    handler = new MediaPlayerHandler(backgroundThread.getLooper());
 	    handler.setCallback(this);
-	    handler.sendMessage(handler.obtainMessage(MediaPlayerHandler.MSG_INIT_PLAYER));
+	    handler.sendMessage(handler.obtainMessage(MediaPlayerHandler.MSG_INIT_PLAYER, fileName));
+	}
+	
+	public void play() {
+	    handler.sendMessage(handler.obtainMessage(MediaPlayerHandler.MSG_START_PLAYER));
+	}
+	
+	public void loop() {
+	    looping = true;
 	}
 	
 	@Override
@@ -56,7 +72,8 @@ public class Movie extends VideoBase implements MediaPlayerHandlerCallback {
 	    public void handleMessage(Message msg) {
 	        switch (msg.what) {
 	        case MSG_INIT_PLAYER:
-	            callback.initPlayer();
+	            String fileName = (String) msg.obj;
+	            callback.initPlayer(fileName);
 	            break;
             case MSG_START_PLAYER:
                 callback.startPlayer();
@@ -68,12 +85,20 @@ public class Movie extends VideoBase implements MediaPlayerHandlerCallback {
 	}
 	
 	@Override
-	public void initPlayer() {
+	public void initPlayer(String fileName) {
 	    player = new MediaPlayer();
-	    player.setSurface(new Surface(mSurfaceTexture));
+	    try {
+            player.setDataSource(activity, Uri.parse(fileName));
+            player.setSurface(new Surface(mSurfaceTexture));
+            player.setLooping(looping);
+            player.prepare();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 	}
 	
 	@Override
 	public void startPlayer() {
+	    player.start();
 	}
 }
