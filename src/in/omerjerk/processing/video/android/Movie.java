@@ -18,7 +18,7 @@ public class Movie extends VideoBase implements MediaPlayerHandlerCallback {
 	}
 	
 	public Movie(PApplet parent, int width, int height) {
-	    super(parent);
+	    super(parent, width, height);
 	    new Thread(new Runnable() {
             @Override
             public void run() {
