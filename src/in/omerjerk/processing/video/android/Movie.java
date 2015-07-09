@@ -2,6 +2,8 @@ package in.omerjerk.processing.video.android;
 
 import java.io.IOException;
 
+import com.sun.xml.internal.ws.wsdl.writer.UsingAddressing;
+
 import in.omerjerk.processing.video.android.callbacks.MediaPlayerHandlerCallback;
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaMetadataRetriever;
@@ -34,6 +36,8 @@ public class Movie extends VideoBase implements MediaPlayerHandlerCallback {
             e.printStackTrace();
         }
 	    
+	    initalizeFrameBuffer();
+	    
 	    HandlerThread backgroundThread = new HandlerThread("MediaPlayer");
 	    backgroundThread.start();
 	    handler = new MediaPlayerHandler(backgroundThread.getLooper());
@@ -54,7 +58,9 @@ public class Movie extends VideoBase implements MediaPlayerHandlerCallback {
 	}
 	
 	@Override
-	public void onResume() {}
+	public void onResume() {
+	    initalizeFrameBuffer();
+	}
 	
 	private class MediaPlayerHandler extends Handler {
 	    
@@ -92,6 +98,10 @@ public class Movie extends VideoBase implements MediaPlayerHandlerCallback {
 	    player = new MediaPlayer();
 	    try {
             player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            System.out.println("texture id = " + mTextureId);
+            while (mTextureId == 0) {
+                Thread.sleep(100);
+            }
             player.setSurface(new Surface(mSurfaceTexture));
             player.setLooping(looping);
             player.prepare();

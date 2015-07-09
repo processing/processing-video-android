@@ -61,13 +61,7 @@ public abstract class VideoBase extends PImage implements PConstants,
         pg = (PGraphicsOpenGL)parent.g;
 //      customTexture = new Texture(pg, width, height);
 //      customTexture.invertedY(true);
-        glView.queueEvent(new Runnable() {
-            @Override
-            public void run() {
-                createSurfaceTexture();
-                prepareFrameBuffers();
-            }
-        });
+        
 //      pg.setCache(this, customTexture);
         activity = parent.getActivity();
     }
@@ -139,6 +133,17 @@ public abstract class VideoBase extends PImage implements PConstants,
             throw new RuntimeException("Framebuffer not complete, status=" + status);
         }
     }
+    
+    protected void initalizeFrameBuffer() {
+        glView.queueEvent(new Runnable() {
+            @Override
+            public void run() {
+                createSurfaceTexture();
+                System.out.println("created surface texture");
+                prepareFrameBuffers();
+            }
+        });
+    }
 
     @Override
     public void onFrameAvailable(final SurfaceTexture surfaceTexture) {
@@ -188,13 +193,6 @@ public abstract class VideoBase extends PImage implements PConstants,
     }
     
     public void resume() {
-        glView.queueEvent(new Runnable() {
-            @Override
-            public void run() {
-                createSurfaceTexture();
-                prepareFrameBuffers();
-            }
-        });
         onResume();
     }
 

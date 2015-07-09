@@ -39,6 +39,7 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 		    height = 720;
 		}
 		init(width, height, ARGB);
+		initalizeFrameBuffer();
 
 		activity.runOnUiThread(new Runnable() {
 			@Override
@@ -78,6 +79,7 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 	@Override
 	public void onResume() {
 		log("resume called");
+		initalizeFrameBuffer();
 		glView.queueEvent(new Runnable() {
 			@Override
 			public void run() {
