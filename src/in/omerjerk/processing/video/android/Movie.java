@@ -1,11 +1,6 @@
 package in.omerjerk.processing.video.android;
 
-import java.io.IOException;
-
-import javax.xml.stream.events.StartDocument;
-
 import in.omerjerk.processing.video.android.callbacks.MediaPlayerHandlerCallback;
-import android.drm.DrmStore.Playback;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
