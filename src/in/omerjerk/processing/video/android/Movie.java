@@ -2,8 +2,6 @@ package in.omerjerk.processing.video.android;
 
 import java.io.IOException;
 
-import com.sun.xml.internal.ws.wsdl.writer.UsingAddressing;
-
 import in.omerjerk.processing.video.android.callbacks.MediaPlayerHandlerCallback;
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaMetadataRetriever;
