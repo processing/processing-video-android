@@ -36,7 +36,7 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 		super(parent);
 		if (width == -1 || height == -1) {
 		    width = 720;
-		    height = 720;
+		    height = 1280;
 		}
 		init(width, height, ARGB);
 		initalizeFrameBuffer();
