@@ -56,6 +56,15 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 			selectedCamera = camerasList.indexOf(camera);
 		}
 		log("Selected camera = " + selectedCamera);
+		while (mCameraHandler == null) {
+		    //mCameraHandler is instantiated in another thread and at very rare
+		    //occasion, it can be null at this stage
+		    try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+		}
 		mCameraHandler.sendMessage(mCameraHandler.obtainMessage(
 				CameraHandler.MSG_START_CAMERA, new Integer(selectedCamera)));
 		mCameraHandler.sendMessage(mCameraHandler.obtainMessage(
