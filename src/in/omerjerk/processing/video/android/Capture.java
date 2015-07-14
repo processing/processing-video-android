@@ -219,8 +219,8 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 			mCamera = Camera.open(cameraId);
 			mCamera.setDisplayOrientation(90);
 		} catch (Exception e) {
-			log("Couldn't open the Camera");
-			e.printStackTrace();
+			System.err.println("Couldn't open the camera");
+			System.err.println("Make sure you have added the Camera permission in AndroidManifest.xml");
 		}
 	}
 	
