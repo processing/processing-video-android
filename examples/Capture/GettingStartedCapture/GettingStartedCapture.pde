@@ -9,11 +9,10 @@ Capture cap;
 
 void setup() {
   
-  size(640, 360, P2D);
+  size(720, 1280, P2D);
   
-  cap = new Capture(this);
-  String[] list = cap.list();
-  cap.setCamera(list[0]);
+  String[] cameras = Capture.list();
+  cap = new Capture(this, cameras[0]);
   cap.start();
 }
 
