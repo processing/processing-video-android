@@ -29,10 +29,18 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 	private CameraHandler mCameraHandler;
 
 	public Capture(PApplet parent) {
-		this(parent, -1, -1);
+		this(parent, -1, -1, null);
 	}
+	
+	public Capture(PApplet parent, int width, int height) {
+	    this(parent, width, height, null);
+	}
+	
+	public Capture(final PApplet parent, String cameraName) {
+        this(parent, -1, -1, cameraName);
+    }
 
-	public Capture(final PApplet parent, int width, int height) {
+	public Capture(PApplet parent, int width, int height, String cameraName) {
 		super(parent);
 		if (width == -1 || height == -1) {
 		    width = 720;
@@ -47,9 +55,10 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 				mCameraHandler = new CameraHandler(Capture.this);
 			}
 		});
+		setCamera(cameraName);
 	}
 
-	public void setCamera(String camera) {
+	private void setCamera(String camera) {
 		if (camera == null || camera.equals("")) {
 			selectedCamera = 0;
 		} else {
@@ -58,7 +67,7 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 		log("Selected camera = " + selectedCamera);
 		while (mCameraHandler == null) {
 		    //mCameraHandler is instantiated in another thread and at very rare
-		    //occasion, it can be null at this stage
+		    //occasions, it can be null at this stage
 		    try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
