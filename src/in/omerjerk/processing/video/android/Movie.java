@@ -60,6 +60,11 @@ public class Movie extends VideoBase implements MediaPlayerHandlerCallback {
 	    initalizeFrameBuffer();
 	}
 	
+	@Override
+	public String getEventName() {
+	    return "movieEvent";
+	}
+	
 	private class MediaPlayerHandler extends Handler {
 	    
 	    public static final int MSG_INIT_PLAYER = 0;

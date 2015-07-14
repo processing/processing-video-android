@@ -1,5 +1,6 @@
 package in.omerjerk.processing.video.android;
 
+import java.lang.reflect.Method;
 import java.nio.IntBuffer;
 
 import in.omerjerk.processing.video.android.helpers.FullFrameRect;
@@ -29,6 +30,9 @@ public abstract class VideoBase extends PImage implements PConstants,
         if (DEBUG)
             System.out.println(log);
     }
+    
+    private Method eventMethod;
+    private Object eventHandler;
 
     protected GLSurfaceView glView;
     protected SurfaceTexture mSurfaceTexture;
@@ -49,6 +53,7 @@ public abstract class VideoBase extends PImage implements PConstants,
     
     public abstract void onResume();
     public abstract void onPause();
+    public abstract String getEventName();
     
     public VideoBase(PApplet parent) {
         super();
@@ -56,6 +61,8 @@ public abstract class VideoBase extends PImage implements PConstants,
         
         parent.registerMethod("pause", this);
         parent.registerMethod("resume", this);
+        
+        setEventHandlerObject(parent);
         
         glView = (GLSurfaceView) parent.getSurfaceView();
         pg = (PGraphicsOpenGL)parent.g;
@@ -68,6 +75,10 @@ public abstract class VideoBase extends PImage implements PConstants,
    
     public boolean available() {
         return isAvailable;
+    }
+    
+    public void read() {
+        getImage(false);
     }
 
     protected void createSurfaceTexture() {
@@ -160,7 +171,7 @@ public abstract class VideoBase extends PImage implements PConstants,
                 surfaceTexture.getTransformMatrix(mSTMatrix);
                 mFullScreen.drawFrame(mTextureId, mSTMatrix);
 
-                getImage(false);
+                fireEvent();
 
                 /*
                  * pixelBuffer.position(0); GLES20.glReadPixels(0, 0, width,
@@ -236,5 +247,38 @@ public abstract class VideoBase extends PImage implements PConstants,
         GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixelBuffer);
         pixelBuffer.position(0);
         pixelBuffer.get(this.pixels);
+    }
+    
+    private void setEventHandlerObject(Object obj) {
+        eventHandler = obj;
+
+        try {
+          eventMethod = obj.getClass().getMethod(getEventName(), Capture.class);
+          return;
+        } catch (Exception e) {
+          // no such method, or an error.. which is fine, just ignore
+        }
+
+        // The captureEvent method may be declared as receiving Object, rather
+        // than Capture.
+        try {
+          eventMethod = obj.getClass().getMethod(getEventName(), Object.class);
+          return;
+        } catch (Exception e) {
+          // no such method, or an error.. which is fine, just ignore
+        }
+    }
+    
+    private void fireEvent() {
+        if (eventMethod != null) {
+          try {
+            eventMethod.invoke(eventHandler, this);
+
+          } catch (Exception e) {
+            System.err.println("error, disabling " + getEventName() + "()");
+            e.printStackTrace();
+            eventMethod = null;
+          }
+        }
     }
 }

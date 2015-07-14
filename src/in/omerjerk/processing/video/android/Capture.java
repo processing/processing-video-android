@@ -115,6 +115,11 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 		});
 	}
 	
+	@Override
+	public String getEventName() {
+	    return "captureEvent";
+	}
+	
 	public static String[] list() {
 		//The following check has to be commented to make list() method static
 //		if (applet.getPackageManager().hasSystemFeature(
