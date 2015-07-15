@@ -161,7 +161,7 @@ public abstract class VideoBase extends PImage implements PConstants,
         glView.queueEvent(new Runnable() {
             @Override
             public void run() {
-                log("onFrameAvailable");
+//                log("onFrameAvailable");
                 isAvailable = true;
                 surfaceTexture.updateTexImage();
 
@@ -253,10 +253,11 @@ public abstract class VideoBase extends PImage implements PConstants,
         eventHandler = obj;
 
         try {
-          eventMethod = obj.getClass().getMethod(getEventName(), Capture.class);
+          eventMethod = obj.getClass().getMethod(getEventName(), getClass());
           return;
         } catch (Exception e) {
           // no such method, or an error.. which is fine, just ignore
+          log("No event method");
         }
 
         // The captureEvent method may be declared as receiving Object, rather

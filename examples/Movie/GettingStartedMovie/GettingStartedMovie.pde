@@ -12,3 +12,7 @@ void setup() {
 void draw() {
   image(movie, 0, 0);
 }
+
+void movieEvent(Movie m) {
+  m.read();
+}

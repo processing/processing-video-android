@@ -16,6 +16,7 @@ void setup() {
 }
 
 void draw() {
+  cap.read();
   shader(bwShader);
   image(cap, 0, 0);
 }
