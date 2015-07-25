@@ -187,7 +187,10 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 	}
 
 	public static void printCompatibleResolutionsList(Capture capture) {
-		Camera camera = capture.getCamera();
+		Camera camera = null;
+		if (capture != null) {
+			camera = capture.getCamera();
+		}
 		boolean selfOpen = false;
 		if (camera == null) {
 			camera = Camera.open(0);
