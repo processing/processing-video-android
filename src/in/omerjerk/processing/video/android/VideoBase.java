@@ -210,9 +210,7 @@ public abstract class VideoBase extends PImage implements PConstants,
     public void getImage(boolean loadPixels) {
 
         if (destpg == null || destpg.width != width || destpg.height != height) {
-            destpg = (PGraphicsOpenGL) parent.createGraphics(width, height,
-                    PConstants.P2D);
-            destpg.pgl.setGlThread(Thread.currentThread());
+            destpg = (PGraphicsOpenGL) parent.createGraphics(width, height, P2D);
         }
 
         destpg.beginDraw();
