@@ -1,7 +1,10 @@
 package in.omerjerk.processing.video.android;
 
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+import java.util.Arrays;
 
 import in.omerjerk.processing.video.android.helpers.FullFrameRect;
 import in.omerjerk.processing.video.android.helpers.GlUtil;
@@ -120,11 +123,26 @@ public abstract class VideoBase extends PImage implements PConstants,
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, customTexture.get(0));
         GlUtil.checkGlError("glBindTexture");
         
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
-        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
+        int[] glColor = new int[16*16];
+        Arrays.fill(glColor, 0);
+        IntBuffer texels = allocateDirectIntBuffer(16 * 16);
+        texels.put(glColor);
+        texels.rewind();
+        /*
+        for (int y = 0; y < height; y += 16) {
+            int h = PApplet.min(16, height - y);
+            for (int x = 0; x < width; x += 16) {
+                int w = PApplet.min(16, width - x);
+                GLES20.glTexSubImage2D(GLES20.GL_TEXTURE_2D, 0, x, y, w, h, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, texels);
+            }
+        }
+        GlUtil.checkGlError("glTexSubImage2D"); */
+        
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, texels);
         GlUtil.checkGlError("glTexImage2D");
 
         GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,
@@ -143,6 +161,12 @@ public abstract class VideoBase extends PImage implements PConstants,
         if (status != GLES20.GL_FRAMEBUFFER_COMPLETE) {
             throw new RuntimeException("Framebuffer not complete, status=" + status);
         }
+    }
+    
+    protected static IntBuffer allocateDirectIntBuffer(int size) {
+        int bytes = size * (Integer.SIZE/8);
+        return ByteBuffer.allocateDirect(bytes).order(ByteOrder.nativeOrder()).
+               asIntBuffer();
     }
     
     protected void initalizeFrameBuffer() {
