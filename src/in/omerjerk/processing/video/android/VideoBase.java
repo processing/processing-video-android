@@ -123,9 +123,9 @@ public abstract class VideoBase extends PImage implements PConstants,
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, customTexture.get(0));
         GlUtil.checkGlError("glBindTexture");
         
-        int[] glColor = new int[16*16];
+        int[] glColor = new int[width*height];
         Arrays.fill(glColor, 0);
-        IntBuffer texels = allocateDirectIntBuffer(16 * 16);
+        IntBuffer texels = allocateDirectIntBuffer(width*height);
         texels.put(glColor);
         texels.rewind();
         /*
