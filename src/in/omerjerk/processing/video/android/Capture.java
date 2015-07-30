@@ -27,6 +27,8 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 	private int selectedCamera = -1;
 
 	private CameraHandler mCameraHandler;
+	
+	private boolean isPreviewSizeDefined = true;
 
 	public Capture(PApplet parent) {
 		this(parent, -1, -1, null);
@@ -45,6 +47,7 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 		if (width == -1 || height == -1) {
 		    width = 720;
 		    height = 1280;
+		    isPreviewSizeDefined = false;
 		}
 		init(width, height, ARGB);
 		initalizeFrameBuffer();
@@ -225,6 +228,13 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 		try {
 		    log("Starting camera with camera id = " + cameraId);
 			mCamera = Camera.open(cameraId);
+			Camera.Parameters parameters = mCamera.getParameters();
+			if (!isPreviewSizeDefined) {
+				setPreviewSize(parameters, width);
+			} else {
+				parameters.setPreviewSize(width, height);
+			}
+			mCamera.setParameters(parameters);
 			mCamera.setDisplayOrientation(90);
 		} catch (Exception e) {
 			System.err.println("Couldn't open the camera");
@@ -257,4 +267,18 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 			e.printStackTrace();
 		}
 	}
+	
+	private void setPreviewSize(Camera.Parameters parameters, int expectedWidth) {
+        List<Camera.Size> sizes = parameters.getSupportedPreviewSizes();
+        int minDiff = 100000000;
+        Camera.Size minSize = null;
+        for (Camera.Size size : sizes) {
+            if (minDiff > Math.abs(expectedWidth - size.width)) {
+                minDiff = Math.abs(expectedWidth - size.width);
+                minSize = size;
+            }
+        }
+        Log.i("Capture", "Size not provided. Choosing " + minSize.width + "x" + minSize.height);
+        parameters.setPreviewSize(minSize.width, minSize.height);
+    }
 }
