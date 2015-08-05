@@ -102,21 +102,6 @@ public abstract class VideoBase extends PImage implements PConstants,
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffers.get(0));
         GlUtil.checkGlError("glBindFramebuffer");
         
-        //Generate render buffers
-        GLES20.glGenRenderbuffers(1, renderBuffers);
-        GlUtil.checkGlError("glGenRenderbuffers");
-        //Bind render buffers
-        GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, renderBuffers.get(0));
-        GlUtil.checkGlError("glBindRenderbuffer");
-        //Allocate memory to render buffers
-        GLES20.glRenderbufferStorage(GLES20.GL_RENDERBUFFER, GLES20.GL_DEPTH_COMPONENT16, width, height);
-        GlUtil.checkGlError("glRenderbufferStorage");
-        
-        //Attach render buffer to frame buffer
-        GLES20.glFramebufferRenderbuffer(GLES20.GL_FRAMEBUFFER, GLES20.GL_DEPTH_ATTACHMENT,
-                GLES20.GL_RENDERBUFFER, renderBuffers.get(0));
-        GlUtil.checkGlError("glFramebufferRenderbuffer");
-        
         GLES20.glGenTextures(1, customTexture);
         GlUtil.checkGlError("glGenTextures");
 
@@ -148,13 +133,6 @@ public abstract class VideoBase extends PImage implements PConstants,
         GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,
                 GLES20.GL_TEXTURE_2D, customTexture.get(0), 0);
         GlUtil.checkGlError("glFramebufferTexture2D");
-        
-        /*
-        //No sure if this is required in opengl es 2. Ignoring as of now.
-        IntBuffer drawBuffers = IntBuffer.allocate(1);
-        drawBuffers.put(0, GLES20.GL_COLOR_ATTACHMENT0);
-        GLES30.glDrawBuffers(1, drawBuffers);
-        */
         
         // See if GLES is happy with all this.
         int status = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER);
