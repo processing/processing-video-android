@@ -3,6 +3,8 @@ package in.omerjerk.processing.video.android;
 import java.io.IOException;
 
 import in.omerjerk.processing.video.android.callbacks.MediaPlayerHandlerCallback;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
@@ -29,6 +31,11 @@ public class Movie extends VideoBase implements MediaPlayerHandlerCallback {
             metaRetriever.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
             String height = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT);
             String width = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH);
+            if (height == null || width == null) {
+            	showDialog("Error!", "This video format is not supported by the device."
+                    + "Please try a video with another format.");
+            	return;
+            }
             init(Integer.valueOf(width), Integer.valueOf(height), ARGB);
         } catch (IOException e) {
             e.printStackTrace();
@@ -116,5 +123,20 @@ public class Movie extends VideoBase implements MediaPlayerHandlerCallback {
 	@Override
 	public void startPlayer() {
 	    player.start();
+	}
+	
+	private void showDialog(String title, String message) {
+		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(activity);
+		dialogBuilder.setMessage(message);
+		dialogBuilder.setMessage(title);
+		
+		dialogBuilder.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+	           public void onClick(DialogInterface dialog, int id) {
+	               activity.finish();
+	           }
+	    });
+		
+		AlertDialog dialog = dialogBuilder.create();
+		dialog.show();
 	}
 }
