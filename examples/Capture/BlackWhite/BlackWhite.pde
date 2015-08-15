@@ -6,11 +6,10 @@ PShader bwShader;
 
 void setup() {
   
-  fullscreen(P2D);
+  fullScreen(P2D);
+  String[] list = Capture.list();
+  cap = new Capture(this, list[0]);
   
-  cap = new Capture(this);
-  String[] list = cap.list();
-  cap.setCamera(list[0]);
   cap.start();
   bwShader = loadShader("fragmentShader.glsl");
 }
