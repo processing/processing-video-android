@@ -19,20 +19,19 @@
 
   <target name="compile" description="Compile sources">
     <condition property="core-built">
-      <available file="../processing-android/android-core.zip" />
+      <available file="../processing-android/dist/AndroidMode.zip" />
     </condition>
-    <fail unless="core-built" message="Please build the core library first and make sure it sits in ../processing-android/android-core.zip" />
+    <fail unless="core-built" message="Please build the core library first and make sure it sits in ../processing-android/dist/AndroidMode.zip" />
 
     <mkdir dir="bin" />
-    <javac source="1.6"
-	   target="1.6" 
+    <javac source="17"
+	   target="17"
 	   srcdir="src" destdir="bin"
 	   encoding="UTF-8"
 	   includeAntRuntime="false"
-	   classpath="../processing-android/android-core.zip;${env.ANDROID_SDK}/platforms/android-21/android.jar"
+	   classpath="../processing-android/dist/AndroidMode/processing-core.zip;${env.ANDROID_SDK}/platforms/android-33/android.jar;"
 	   nowarn="true"
-	   compiler="org.eclipse.jdt.core.JDTCompilerAdapter">
-      <compilerclasspath path="../processing/java/mode/org.eclipse.jdt.core.jar;../processing/java/mode/jdtCompilerAdapter.jar" />
+	   compiler="modern">
     </javac>
   </target>
 
