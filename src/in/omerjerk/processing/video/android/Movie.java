@@ -120,6 +120,11 @@ public class Movie extends VideoBase implements MediaPlayerHandlerCallback {
         }
 	}
 	
+	public void dispose() {
+		player.stop();
+		player.release();
+	}
+
 	@Override
 	public void startPlayer() {
 	    player.start();
