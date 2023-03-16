@@ -1,4 +1,10 @@
 bin
+/build
 /dist
+/distribution
 .classpath
 .project
+*.DS_Store
+/.gradle
+local.properties
+/.idea
