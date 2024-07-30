@@ -67,7 +67,7 @@ public abstract class VideoBase extends PImage implements PConstants,
         
         setEventHandlerObject(parent);
         
-        glView = (GLSurfaceView) parent.getSurfaceView();
+        glView = (GLSurfaceView) parent.getSurface().getSurfaceView();
         pg = (PGraphicsOpenGL)parent.g;
 //      customTexture = new Texture(pg, width, height);
 //      customTexture.invertedY(true);

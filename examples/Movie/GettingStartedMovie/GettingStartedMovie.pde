@@ -4,7 +4,7 @@ Movie movie;
 
 void setup() {
   size(1280, 1280, P2D);
-  movie = new Movie(this, "transit.mov");
+  movie = new Movie(this, "transit.mp4");
   movie.loop();
   movie.play();
 }

@@ -252,7 +252,7 @@ public class Capture extends VideoBase implements CameraHandlerCallback {
 
 	@Override
 	public void startPreview() {
-		if (parent.getSurfaceHolder().getSurface() == null) {
+		if (parent.getSurface().getSurfaceHolder().getSurface() == null) {
 			// preview surface does not exist
 			return;
 		}
